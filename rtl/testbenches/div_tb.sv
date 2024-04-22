@@ -3,11 +3,6 @@ class tb_input;
         rand bit signed [23:0] dividend;
         rand bit signed [23:0] divisor;
 
-        constraint valid_address {
-            dividend inside { [-16777215:16777215] };
-            divisor inside { [-16777215:16777215] };
-        }
-
 endclass //tb_input
 
 module div_tb();
@@ -34,9 +29,9 @@ module div_tb();
     );
 
     // data structures for results
-    logic signed [23:0] test_dividends [200];
-    logic signed [23:0] test_divisors [200];
-    logic signed [23:0] test_results [200];
+    logic signed [23:0] test_dividends [256];
+    logic signed [23:0] test_divisors [256];
+    logic signed [23:0] test_results [256];
 
     tb_input rand_vals;
     real epsilon = 1e-3;
@@ -50,14 +45,6 @@ module div_tb();
             out_index <= out_index + 1;
         end
     end
-
-    // sequence req
-    //     (dividend_tvalid & divisor_tvalid);
-    // endsequence
-
-    // sequence ack
-    //     ##[40] (tvalid && ((real'(dividend) / real'(divisor)) == (real'(result) / 4096)))
-    // endsequence
     
     initial begin
         clk <= 0;
@@ -69,7 +56,7 @@ module div_tb();
         #10
         
         // begin randomized testing
-        repeat (200) begin
+        repeat (256) begin
             #10
             assert(rand_vals.randomize());
 
@@ -91,7 +78,7 @@ module div_tb();
         end
         #1000 // wait for all results
 
-        for (int i = 0; i < 200; i = i + 1) begin
+        for (int i = 0; i < 256; i = i + 1) begin
             automatic real real_dividend = real'(test_dividends[i]);
             automatic real real_divisor = real'(test_divisors[i]);
             automatic real true_result = real_dividend / real_divisor;
