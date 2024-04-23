@@ -1,6 +1,9 @@
 `define LAMBERTIAN 2'd0
 `define MIRROR     2'd1
 
+`define INFINITY_24             24'h7FFFFF
+`define NEGATIVE_INFINITY_24    24'h800000
+
 typedef struct {
     logic signed [23:0] x;
     logic signed [23:0] y;

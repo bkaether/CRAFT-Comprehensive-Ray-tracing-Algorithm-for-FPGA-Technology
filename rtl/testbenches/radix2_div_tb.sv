@@ -1,3 +1,5 @@
+`timescale  1 ps / 1 ps
+
 class tb_input;
 
         rand bit signed [23:0] dividend;
@@ -5,7 +7,10 @@ class tb_input;
 
 endclass //tb_input
 
-module div_tb();
+`ifndef RADIX2_DIV_TB
+`define RADIX2_DIV_TB
+
+module radix2_div_tb();
 
     logic clk;
     logic signed [23:0] dividend;
@@ -18,8 +23,8 @@ module div_tb();
 
     always #5 clk = ~clk;
 
-    fxpt_div DUT (
-        .clk(clk),
+    radix2_div DUT (
+        .sysclk(clk),
         .divisor_tvalid(divisor_tvalid),    // input wire s_axis_divisor_tvalid
         .divisor(divisor),      // input wire [23 : 0] s_axis_divisor_tdata
         .dividend_tvalid(dividend_tvalid),  // input wire s_axis_dividend_tvalid
@@ -101,3 +106,5 @@ module div_tb();
     end
     
 endmodule
+
+`endif
