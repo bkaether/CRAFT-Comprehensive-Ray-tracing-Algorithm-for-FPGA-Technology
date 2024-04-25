@@ -1,6 +1,8 @@
-`timescale 1ps/1ps
-
 `include "data_structs.sv"
+
+`ifndef RAY_BBOX
+`define RAY_BBOX
+`timescale 1ps/1ps
 
 module ray_bbox_intersect (
     input wire clk,
