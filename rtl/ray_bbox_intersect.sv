@@ -1,12 +1,12 @@
-`ifndef RAY_BBOX
-`define RAY_BBOX
 `timescale 1ps/1ps
+
+`include "data_structs.sv"
 
 module ray_bbox_intersect (
     input wire clk,
     input wire rst_n,
     input vec3 ray_orig,
-    input vec3 inv_ray_dir
+    input vec3 inv_ray_dir,
     input bbox box,
     input vec2 prev_range,
 
@@ -28,39 +28,39 @@ module ray_bbox_intersect (
     mult_gen_0 mult_i_0 (
         .A(sub_min_x),
         .B(inv_ray_dir.x),
-        .P(mult_result_t0x),
+        .P(mult_result_t0x)
     );
 
     mult_gen_0 mult_i_1 (
         .A(sub_max_x),
         .B(inv_ray_dir.x),
-        .P(mult_result_t1x),
+        .P(mult_result_t1x)
     );
 
     // y axis
     mult_gen_0 mult_i_2 (
         .A(sub_min_y),
         .B(inv_ray_dir.y),
-        .P(mult_result_t0y),
+        .P(mult_result_t0y)
     );
 
     mult_gen_0 mult_i_3 (
         .A(sub_max_y),
         .B(inv_ray_dir.y),
-        .P(mult_result_t1y),
+        .P(mult_result_t1y)
     );
 
     // z axis
     mult_gen_0 mult_i_4 (
         .A(sub_min_z),
         .B(inv_ray_dir.z),
-        .P(mult_result_t0z),
+        .P(mult_result_t0z)
     );
 
     mult_gen_0 mult_i_5 (
         .A(sub_max_z),
         .B(inv_ray_dir.z),
-        .P(mult_result_t1z),
+        .P(mult_result_t1z)
     );
 
     wire [2:0] swap;

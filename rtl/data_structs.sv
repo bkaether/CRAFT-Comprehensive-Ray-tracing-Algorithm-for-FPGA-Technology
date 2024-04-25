@@ -1,3 +1,6 @@
+`ifndef DATA_STRUCTS_SV
+`define DATA_STRUCTS_SV
+
 `define LAMBERTIAN 2'd0
 `define MIRROR     2'd1
 
@@ -36,3 +39,5 @@ typedef struct packed {
     point min;
     point max;
 } bbox;
+
+`endif
