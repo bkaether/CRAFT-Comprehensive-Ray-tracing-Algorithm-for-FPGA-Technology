@@ -1,5 +1,3 @@
-`ifndef RADIX2_DIV
-`define RADIX2_DIV
 `timescale  1ps/1ps
 
 module radix2_div (
@@ -31,5 +29,3 @@ module radix2_div (
     assign result = quotient + fraction;
 
 endmodule
-
-`endif

@@ -7,9 +7,6 @@ class tb_input;
 
 endclass //tb_input
 
-`ifndef RADIX2_DIV_TB
-`define RADIX2_DIV_TB
-
 module radix2_div_tb();
 
     logic clk;
@@ -106,5 +103,3 @@ module radix2_div_tb();
     end
     
 endmodule
-
-`endif

@@ -1,7 +1,5 @@
-`include "data_structs.sv"
+import data_structs::*;
 
-`ifndef RAY_BBOX
-`define RAY_BBOX
 `timescale 1ps/1ps
 
 module ray_bbox_intersect (
@@ -95,5 +93,3 @@ module ray_bbox_intersect (
     assign range_out.y = (tmax_x < tmax_y) ? ((tmax_x < tmax_z) ? tmax_x : tmax_z) : ((tmax_y < tmax_z) ? tmax_y : tmax_z);
         
 endmodule
-
-`endif
