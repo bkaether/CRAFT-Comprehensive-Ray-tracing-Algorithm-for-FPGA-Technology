@@ -3,7 +3,7 @@ import data_structs::*;
 `timescale 1ps/1ps
 
 module ray_bbox_intersect (
-    input wire clk,
+    input wire sysclk,
     input wire rst_n,
     input vec3 ray_orig,
     input vec3 inv_ray_dir,
