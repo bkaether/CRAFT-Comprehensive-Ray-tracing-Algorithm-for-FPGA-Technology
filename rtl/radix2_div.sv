@@ -1,6 +1,6 @@
 `ifndef RADIX2_DIV
 `define RADIX2_DIV
-`timescale  1 ps / 1 ps
+`timescale  1ps/1ps
 
 module radix2_div (
     input wire sysclk,
