@@ -6,6 +6,11 @@ package data_structs;
     } vec2;
 
     typedef struct packed {
+        logic signed [23:0] min;
+        logic signed [23:0] max;
+    } range;
+
+    typedef struct packed {
         logic signed [23:0] x;
         logic signed [23:0] y;
         logic signed [23:0] z;
@@ -32,5 +37,15 @@ package data_structs;
         point min;
         point max;
     } bbox;
+
+    // default struct constants
+    const vec2 vec2_default = '0;
+    const range range_default = '{24'h800000, 24'h7FFFFF};
+    const vec3 vec3_default = '0;
+    const point point_default = '0;
+    const spectrum spectrum_default = '1;
+    const ray ray_default = '0;
+    const bbox bbox_default = '0;
+    
 
 endpackage
