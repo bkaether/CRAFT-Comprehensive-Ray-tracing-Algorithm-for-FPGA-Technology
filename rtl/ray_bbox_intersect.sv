@@ -1,10 +1,9 @@
-import data_structs::*;
-
 `timescale 1ps/1ps
 
+import data_structs::*;
+
 module ray_bbox_intersect (
-    input wire sysclk,
-    input wire rst_n,
+    input wire clk,
     input vec3 ray_orig,
     input vec3 inv_ray_dir,
     input bbox box,
@@ -26,14 +25,14 @@ module ray_bbox_intersect (
 
     // x axis
     mult_gen_0 mult_i_0 (
-        .CLK(sysclk),
+        .CLK(clk),
         .A(sub_min_x),
         .B(inv_ray_dir.x),
         .P(mult_result_t0x)
     );
 
     mult_gen_0 mult_i_1 (
-        .CLK(sysclk),
+        .CLK(clk),
         .A(sub_max_x),
         .B(inv_ray_dir.x),
         .P(mult_result_t1x)
@@ -41,14 +40,14 @@ module ray_bbox_intersect (
 
     // y axis
     mult_gen_0 mult_i_2 (
-        .CLK(sysclk),
+        .CLK(clk),
         .A(sub_min_y),
         .B(inv_ray_dir.y),
         .P(mult_result_t0y)
     );
 
     mult_gen_0 mult_i_3 (
-        .CLK(sysclk),
+        .CLK(clk),
         .A(sub_max_y),
         .B(inv_ray_dir.y),
         .P(mult_result_t1y)
@@ -56,14 +55,14 @@ module ray_bbox_intersect (
 
     // z axis
     mult_gen_0 mult_i_4 (
-        .CLK(sysclk),
+        .CLK(clk),
         .A(sub_min_z),
         .B(inv_ray_dir.z),
         .P(mult_result_t0z)
     );
 
     mult_gen_0 mult_i_5 (
-        .CLK(sysclk),
+        .CLK(clk),
         .A(sub_max_z),
         .B(inv_ray_dir.z),
         .P(mult_result_t1z)

@@ -3,6 +3,9 @@ import data_structs::*;
 `ifndef DATA_MACROS_SV
 `define DATA_MACROS_SV
 
+`define PIXEL_WIDTH  10'd960
+`define PIXEL_HEIGHT 10'd540
+
 `define LAMBERTIAN 2'd0
 `define MIRROR     2'd1
 

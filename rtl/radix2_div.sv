@@ -1,7 +1,7 @@
 `timescale  1ps/1ps
 
 module radix2_div (
-    input wire sysclk,
+    input wire clk,
     input logic divisor_tvalid,
     input logic signed [23:0] divisor,
     input logic dividend_tvalid,
@@ -14,7 +14,7 @@ module radix2_div (
     wire signed [39:0] tdata;
 
     div_gen_0 div_gen_0_i (
-        .aclk(sysclk),
+        .aclk(clk),
         .s_axis_divisor_tvalid(divisor_tvalid),    // input wire s_axis_divisor_tvalid
         .s_axis_divisor_tdata(divisor),      // input wire [23 : 0] s_axis_divisor_tdata
         .s_axis_dividend_tvalid(dividend_tvalid),  // input wire s_axis_dividend_tvalid

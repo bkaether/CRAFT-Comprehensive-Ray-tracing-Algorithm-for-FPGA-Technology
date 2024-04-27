@@ -27,8 +27,7 @@ module path_tracer_top (
     bbox box = '{min: point_default, max: max_point};
 
     ray_bbox_intersect ray_bbox_intersect_i (
-        .sysclk(sysclk),
-        .rst_n(rst_n),
+        .clk(sysclk),
         .ray_orig(ray_orig_reg),
         .inv_ray_dir(ray_dir_reg),
         .box(box),
