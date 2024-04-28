@@ -6,6 +6,7 @@ module xor_prng_tb();
 
     reg clk;
     reg rst_n;
+    reg enable;
 
     wire [11:0] rand_num;
 
@@ -18,6 +19,7 @@ module xor_prng_tb();
     xor_prng DUT (
         .clk(clk),
         .rst_n(rst_n),
+        .enable(enable),
 
         .rand_num(rand_num)
     );
@@ -26,6 +28,7 @@ module xor_prng_tb();
         clk <= 0;
         rst_n <= 0;
         sum <= 0;
+        enable <= 1;
         #20
         rst_n <= 1;
 

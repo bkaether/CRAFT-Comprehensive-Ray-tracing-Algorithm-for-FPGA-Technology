@@ -13,22 +13,22 @@ module ready_valid_counter #(
 ) (
     input wire clk,
     input wire rst_n,
-    input wire valid,
+    input wire go,
 
-    output wire ready
+    output wire done
 );
 
     // counter value
     reg  [WIDTH-1:0] count;
     wire [WIDTH-1:0] nxt_count;
     
-    assign nxt_count = ready ? '0 : (count + 1'b1);
+    assign nxt_count = done ? '0 : (count + 1'b1);
     
-    wire counter_en = ~ready | (ready & valid);
+    wire counter_en = ~done | (done & go);
 
     // counter FF
     `FF_EN(clk, rst_n, (MAX_VAL-1), counter_en, count, nxt_count)
 
-    assign ready = (count == (MAX_VAL-1));
+    assign done = (count == (MAX_VAL-1));
 
 endmodule
