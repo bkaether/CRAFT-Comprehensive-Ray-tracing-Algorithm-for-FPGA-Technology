@@ -4,6 +4,9 @@
 
 /*
 This module outputs normalized pixel coordinates given pixel x and y values
+
+THE LATENCY OF THIS MODULE IS 2 CYCLES
+normalized values appear at outputs 2 cycles after pixels indices arrive at input.
 */
 module pixel_sampler (
     input wire clk,
