@@ -69,7 +69,7 @@ module pixel_sampler (
 
     // need to right shift the result back by 16 bits for proper fixed point interpretation
     // these numbers have the format Q1.16
-    assign normalized_x = mult_result_x[16:0];
-    assign normalized_y = mult_result_y[16:0];
+    assign normalized_x = mult_result_x[32:16];
+    assign normalized_y = mult_result_y[32:16];
     
 endmodule

@@ -36,16 +36,35 @@ module pixel_sampler_tb();
         rst_n <= 0;
         pixel_x <= '0;
         pixel_y <= '0;
-        stall <= 0;
+        stall <= 1;
         #20
-        for (i = 0; i < pixel_h; i++) begin
-            for (j = 0; j < pixel_w; j++) begin
-                @(posedge clk);
-                pixel_x <= j;
-                pixel_y <= i;
-            end
-        end
-
+        stall <= 0;
+        rst_n <= 1;
+        pixel_x <= 100;
+        pixel_y <= 100;
+        #10
+        pixel_x <= 200;
+        pixel_y <= 200;
+        #10
+        stall <= 1;
+        pixel_x <= 300;
+        pixel_y <= 300;
+        #50
+        stall <= 0;
+        #10
+        pixel_x <= 400;
+        pixel_y <= 400;
+        #100
+        // for (i = 0; i < pixel_h; i++) begin
+        //     for (j = 0; j < pixel_w; j++) begin
+        //         #10
+        //         pixel_x <= j;
+        //         pixel_y <= i;
+        //     end
+        // end
+        #200
+        $display("Test Finsihed");
+        $finish();
     end
 
 endmodule
