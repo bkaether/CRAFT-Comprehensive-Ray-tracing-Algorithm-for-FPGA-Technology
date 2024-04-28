@@ -10,7 +10,7 @@ module xor_prng #(
     input wire rst_n,
     input wire enable,
 
-    output wire [11:0] rand_num
+    output wire [15:0] rand_num
 );
 
     // register for holding the current state/initial output
@@ -26,7 +26,7 @@ module xor_prng #(
     `FF_EN(clk, rst_n, SEED, enable, state, nxt_state)
 
     // get the 12 MSBs of the 16 bit PRNG
-    assign rand_num = state[15:4];
+    assign rand_num = state;
 
     
 endmodule

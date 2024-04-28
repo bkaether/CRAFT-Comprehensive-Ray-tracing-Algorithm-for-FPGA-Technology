@@ -8,7 +8,7 @@ module xor_prng_tb();
     reg rst_n;
     reg enable;
 
-    wire [11:0] rand_num;
+    wire [15:0] rand_num;
 
     integer i;
     reg [63:0] sum;  // Sum variable to avoid overflow with large CYCLES

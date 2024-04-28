@@ -15,7 +15,7 @@ module path_tracer_top (
     `FF(sysclk, rst_n, vec3_default, ray_orig_reg, ray_orig_in)
     `FF(sysclk, rst_n, vec3_default, ray_dir_reg, ray_orig_in)
     
-    vec2 prev_range = '{x: `NEGATIVE_INFINITY_24, y: `INFINITY_24};
+    vec2 prev_range = '{x: `NEGATIVE_INFINITY_28, y: `INFINITY_28};
     
     wire nxt_hit;
     vec2 nxt_range;
