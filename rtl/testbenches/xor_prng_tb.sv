@@ -2,7 +2,7 @@
 
 module xor_prng_tb();
 
-    parameter CYCLES = 1000000;
+    parameter CYCLES = 10000;
 
     reg clk;
     reg rst_n;
@@ -16,7 +16,10 @@ module xor_prng_tb();
 
     always #5 clk = ~clk;
 
-    xor_prng DUT (
+    xor_prng #(
+        .SEED(16'h5A3C)
+//        .SEED(16'hC0DE)
+    ) DUT (
         .clk(clk),
         .rst_n(rst_n),
         .enable(enable),
