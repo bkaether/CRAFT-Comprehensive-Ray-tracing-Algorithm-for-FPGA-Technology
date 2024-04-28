@@ -1,6 +1,6 @@
 `timescale 1ps/1ps
 
-`include "data_macros.sv"
+`include "../data_macros.sv"
 
 // 12 bit xor shift based PRNG
 module xor_prng #(

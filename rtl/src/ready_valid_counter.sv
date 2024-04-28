@@ -1,6 +1,6 @@
 `timescale 1ps/1ps
 
-`include "data_macros.sv"
+`include "../data_macros.sv"
 
 /*
 This counter module will be used for producing ready-valid signals for pipeline stages with

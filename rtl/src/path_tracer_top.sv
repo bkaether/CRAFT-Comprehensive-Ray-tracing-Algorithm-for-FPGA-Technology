@@ -1,4 +1,4 @@
-`include "data_macros.sv"
+`include "../data_macros.sv"
 
 import data_structs::*;
 

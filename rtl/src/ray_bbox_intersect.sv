@@ -1,6 +1,6 @@
 `timescale 1ps/1ps
 
-import data_structs::*;
+`include "../data_macros.sv"
 
 module ray_bbox_intersect (
     input wire clk,

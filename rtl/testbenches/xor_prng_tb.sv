@@ -2,7 +2,7 @@
 
 module xor_prng_tb();
 
-    parameter CYCLES = 10000;
+    parameter CYCLES = 100000;
 
     reg clk;
     reg rst_n;
