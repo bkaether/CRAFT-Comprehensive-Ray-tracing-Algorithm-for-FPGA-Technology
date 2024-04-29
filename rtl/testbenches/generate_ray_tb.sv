@@ -2,7 +2,7 @@
 
 `include "../data_macros.sv"
 
-module pixel_sampler_tb();
+module generate_ray_tb();
 
     parameter pixel_w = 800;
     parameter pixel_h = 600;
@@ -13,22 +13,20 @@ module pixel_sampler_tb();
     reg [9:0] pixel_y;
     reg stall;
 
-    wire [16:0] normalized_x;
-    wire [16:0] normalized_y;
+    ray generated_ray;
 
     integer i, j;
 
     always #5 clk = ~clk;
 
-    pixel_sampler DUT (
+    generate_ray DUT (
         .clk(clk),
         .rst_n(rst_n),
         .pixel_x(pixel_x),
         .pixel_y(pixel_y),
         .stall(stall),
 
-        .normalized_x(normalized_x),
-        .normalized_y(normalized_y)
+        .generated_ray(generated_ray)
     );
 
     initial begin

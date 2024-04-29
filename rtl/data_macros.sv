@@ -18,6 +18,7 @@ import data_structs::*;
 
 // value "1" in Q12.16 fixed point format
 `define ONE 28'h0010000
+`define NEGATIVE_ONE 28'hFFF0000
 
 // D Flip Flop with active low reset
 `define FF(clk, rst_n, rst_val, Q, D) \
