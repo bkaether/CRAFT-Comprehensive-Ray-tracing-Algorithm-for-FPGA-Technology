@@ -15,7 +15,7 @@ module generate_ray_tb();
 
     ray generated_ray;
 
-    integer i, j;
+    // integer i, j;
 
     always #5 clk = ~clk;
 
