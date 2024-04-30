@@ -4,42 +4,50 @@ import data_structs::*;
 
 module path_tracer_top (
     input wire sysclk,
-    input wire rst_n,
-    input vec3 ray_orig_in,
+    // input wire rst_n,
+    // input wire start,
+    input logic signed [31:0] divisor,
 
-    output logic hit_out
+    output logic signed [34:0] result_out,
+    output wire div_by_zero
 );
-    vec3 ray_orig_reg;
-    vec3 ray_dir_reg;
-    
-    `FF(sysclk, rst_n, vec3_default, ray_orig_reg, ray_orig_in)
-    `FF(sysclk, rst_n, vec3_default, ray_dir_reg, ray_orig_in)
-    
-    vec2 prev_range = '{x: `NEGATIVE_INFINITY_28, y: `INFINITY_28};
-    
-    wire nxt_hit;
-    vec2 nxt_range;
 
-    reg hit_reg;
-    vec2 range_reg;
+    wire signed [23:0] dividend = 24'h010000;
+    wire signed [39:0] result;
 
-    vec3 max_point = '{x: 10, y: 10, z: 10};
-    bbox box = '{min: point_default, max: max_point};
+     // high radix division
+     ray_inverse_div ray_inverse_div_i (
+         .aclk(sysclk),                                      // input wire aclk
+         .aclken(1'b1),                                  // input wire aclken
+         .s_axis_divisor_tvalid(1'b1),    // input wire s_axis_divisor_tvalid
+         .s_axis_divisor_tready(),    // output wire s_axis_divisor_tready
+         .s_axis_divisor_tdata(divisor),      // input wire [31 : 0] s_axis_divisor_tdata
+         .s_axis_dividend_tvalid(1'b1),          // input wire s_axis_dividend_tvalid
+         .s_axis_dividend_tready(),  // output wire s_axis_dividend_tready
+         .s_axis_dividend_tdata(dividend),    // input wire [23 : 0] s_axis_dividend_tdata
+         .m_axis_dout_tvalid(),          // output wire m_axis_dout_tvalid
+         .m_axis_dout_tuser(div_by_zero),            // output wire [0 : 0] m_axis_dout_tuser
+         .m_axis_dout_tdata(result)            // output wire [39 : 0] m_axis_dout_tdata
+     );
 
-    ray_bbox_intersect ray_bbox_intersect_i (
-        .clk(sysclk),
-        .ray_orig(ray_orig_reg),
-        .inv_ray_dir(ray_dir_reg),
-        .box(box),
-        .prev_range(prev_range),
+     assign result_out = result[33:0];
 
-        .hit(nxt_hit),
-        .range_out(nxt_range)
-    );
-    
-    `FF(sysclk, rst_n, 1'b0, hit_reg, nxt_hit)
-    `FF(sysclk, rst_n,  range_default, range_reg, nxt_range)
 
-    assign hit_out = hit_reg;
+
+//    // radix 2 division to compare resource usage
+//    radix2_div radix2_div_i (
+//        .clk(sysclk),
+//        .clk_en(1'b1),
+//        .divisor_tvalid(1'b1),
+//        .divisor(divisor),
+//        .dividend_tvalid(1'b1),
+//        .dividend(dividend),
+
+//        .tvalid(),
+//        .result(result),
+//        .div_by_zero(div_by_zero)
+//    );
+
+//    assign result_out = result[34:0];
     
 endmodule

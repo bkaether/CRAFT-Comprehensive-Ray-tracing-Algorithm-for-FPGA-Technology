@@ -22,11 +22,18 @@ package data_structs;
         logic signed [27:0] z;
     } point;
 
+    // Q1.16
     typedef struct packed {
-        logic [11:0] r;
-        logic [11:0] g;
-        logic [11:0] b;
+        logic [16:0] r;
+        logic [16:0] g;
+        logic [16:0] b;
     } spectrum;
+
+    typedef struct packed {
+        logic [7:0] r;
+        logic [7:0] g;
+        logic [7:0] b;
+    } rgb;
 
     typedef struct packed {
         point orig;
