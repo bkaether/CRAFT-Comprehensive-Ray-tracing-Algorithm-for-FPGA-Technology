@@ -3,17 +3,19 @@
 `include "../data_macros.sv"
 
 /*
-This module outputs normalized pixel coordinates given pixel x and y values
+This module outputs a ray from the scene camera at (0, 0, 0) to a randomly sampled point
+within the given pixel x and y values
 
 THE LATENCY OF THIS MODULE IS 2 CYCLES
-normalized values appear at outputs 2 cycles after pixels indices arrive at input.
+ray appears at output 2 cycles after pixels indices arrive at input.
+
 */
 module generate_ray (
     input wire clk,
     input wire rst_n,
+    input wire stall,
     input wire [9:0] pixel_x,   // [0, 799]
     input wire [9:0] pixel_y,   // [0, 599]
-    input wire stall,
 
     output ray generated_ray
 );

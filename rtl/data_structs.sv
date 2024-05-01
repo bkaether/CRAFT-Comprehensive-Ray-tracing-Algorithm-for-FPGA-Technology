@@ -41,6 +41,12 @@ package data_structs;
     } ray;
 
     typedef struct packed {
+        logic signed [35:0] x;
+        logic signed [35:0] y;
+        logic signed [35:0] z;
+    } vec3_18_18;
+
+    typedef struct packed {
         point min;
         point max;
     } bbox;
