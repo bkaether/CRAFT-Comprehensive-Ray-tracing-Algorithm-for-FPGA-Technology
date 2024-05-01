@@ -1,7 +1,7 @@
 Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2024 Advanced Micro Devices, Inc. All Rights Reserved.
 ---------------------------------------------------------------------------------------------------------------------------------------------
 | Tool Version : Vivado v.2023.2.2 (win64) Build 4126759 Thu Feb  8 23:53:51 MST 2024
-| Date         : Tue Apr 30 14:53:00 2024
+| Date         : Tue Apr 30 17:18:55 2024
 | Host         : Brian-Desktop1 running 64-bit major release  (build 9200)
 | Command      : report_utilization -file path_tracer_top_utilization_placed.rpt -pb path_tracer_top_utilization_placed.pb
 | Design       : path_tracer_top
@@ -71,9 +71,9 @@ Table of Contents
 +--------------------------------------------+------+-------+------------+-----------+-------+
 |                  Site Type                 | Used | Fixed | Prohibited | Available | Util% |
 +--------------------------------------------+------+-------+------------+-----------+-------+
-| Slice                                      |  201 |     0 |          0 |     13300 |  1.51 |
-|   SLICEL                                   |  122 |     0 |            |           |       |
-|   SLICEM                                   |   79 |     0 |            |           |       |
+| Slice                                      |  166 |     0 |          0 |     13300 |  1.25 |
+|   SLICEL                                   |   94 |     0 |            |           |       |
+|   SLICEM                                   |   72 |     0 |            |           |       |
 | LUT as Logic                               |  273 |     0 |          0 |     53200 |  0.51 |
 |   using O5 output only                     |    0 |       |            |           |       |
 |   using O6 output only                     |  207 |       |            |           |       |
@@ -85,10 +85,10 @@ Table of Contents
 |     using O6 output only                   |    8 |       |            |           |       |
 |     using O5 and O6                        |   38 |       |            |           |       |
 | Slice Registers                            |  763 |     0 |          0 |    106400 |  0.72 |
-|   Register driven from within the Slice    |  416 |       |            |           |       |
-|   Register driven from outside the Slice   |  347 |       |            |           |       |
-|     LUT in front of the register is unused |  292 |       |            |           |       |
-|     LUT in front of the register is used   |   55 |       |            |           |       |
+|   Register driven from within the Slice    |  420 |       |            |           |       |
+|   Register driven from outside the Slice   |  343 |       |            |           |       |
+|     LUT in front of the register is unused |  296 |       |            |           |       |
+|     LUT in front of the register is used   |   47 |       |            |           |       |
 | Unique Control Sets                        |    7 |       |          0 |     13300 |  0.05 |
 +--------------------------------------------+------+-------+------------+-----------+-------+
 * * Note: Available Control Sets calculated as Slice * 1, Review the Control Sets Report for more information regarding control sets.
@@ -125,9 +125,9 @@ Table of Contents
 +-----------------------------+------+-------+------------+-----------+-------+
 |          Site Type          | Used | Fixed | Prohibited | Available | Util% |
 +-----------------------------+------+-------+------------+-----------+-------+
-| Bonded IOB                  |   65 |     1 |          0 |       125 | 52.00 |
+| Bonded IOB                  |   66 |     1 |          0 |       125 | 52.80 |
 |   IOB Master Pads           |   32 |       |            |           |       |
-|   IOB Slave Pads            |   32 |       |            |           |       |
+|   IOB Slave Pads            |   33 |       |            |           |       |
 | Bonded IPADs                |    0 |     0 |          0 |         2 |  0.00 |
 | Bonded IOPADs               |    0 |     0 |          0 |       130 |  0.00 |
 | PHY_CONTROL                 |    0 |     0 |          0 |         4 |  0.00 |
@@ -188,7 +188,7 @@ Table of Contents
 | LUT2     |   94 |                 LUT |
 | SRL16E   |   93 |  Distributed Memory |
 | LUT6     |   38 |                 LUT |
-| OBUF     |   36 |                  IO |
+| OBUF     |   37 |                  IO |
 | IBUF     |   29 |                  IO |
 | LUT4     |   28 |                 LUT |
 | CARRY4   |   19 |          CarryLogic |

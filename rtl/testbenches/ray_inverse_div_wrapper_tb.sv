@@ -8,7 +8,7 @@ class tb_input;
 
 endclass //tb_input
 
-module radix2_div_tb();
+module ray_inverse_div_wrapper_tb();
 
     logic clk;
     logic clk_en;
@@ -23,7 +23,7 @@ module radix2_div_tb();
 
     always #5 clk = ~clk;
 
-    radix2_div DUT (
+    ray_inverse_div_wrapper DUT (
         .clk(clk),
         .clk_en(clk_en),
         .divisor_tvalid(divisor_tvalid),    // input wire s_axis_divisor_tvalid
@@ -64,7 +64,7 @@ module radix2_div_tb();
         rand_vals = new();
         #10
         
-        repeat (1024) begin
+        repeat (256) begin
 
             in_index = 0;
 

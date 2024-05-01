@@ -1,6 +1,6 @@
 `timescale  1ps/1ps
 
-module radix2_div (
+module ray_inverse_div_wrapper (
     input wire clk,
     input wire clk_en,
 
@@ -22,7 +22,7 @@ module radix2_div (
     
     wire signed [39:0] tdata;
 
-    div_gen_0 div_gen_i (
+    ray_inverse_div_radix2 div_i (
         .aclk(clk),                                 // input wire aclk
         .aclken(clk_en),                            // input wire aclken
         .s_axis_divisor_tvalid(divisor_tvalid),     // input wire s_axis_divisor_tvalid
