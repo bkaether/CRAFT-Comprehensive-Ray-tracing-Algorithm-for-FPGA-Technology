@@ -4,55 +4,57 @@ import data_structs::*;
 
 module path_tracer_top (
     input wire sysclk,
-    // input wire rst_n,
+    input wire rst_n,
     // input wire start,
-    input logic signed [27:0] divisor,
+    input wire [9:0] pixel_x,   // [0, 799]
+    input wire [9:0] pixel_y,   // [0, 599]
 
-    output logic signed [35:0] result_out,
-    output wire div_by_zero
+    output wire hit
 );
 
-    wire signed [17:0] dividend = 18'h10000;
+    ray generated_ray;
 
-    // // high radix division
+    // ray generation unit
+    generate_ray ray_gen_i (
+        .clk(sysclk),
+        .rst_n(rst_n),
+        .stall(1'b0),
+        .pixel_x(pixel_x),
+        .pixel_y(pixel_y),
 
-    // wire signed [39:0] result;
+        .generated_ray(generated_ray)
+    );
 
-    // ray_inverse_div ray_inverse_div_i (
-    //     .aclk(sysclk),                                      // input wire aclk
-    //     .aclken(1'b1),                                  // input wire aclken
-    //     .s_axis_divisor_tvalid(1'b1),    // input wire s_axis_divisor_tvalid
-    //     .s_axis_divisor_tready(),    // output wire s_axis_divisor_tready
-    //     .s_axis_divisor_tdata(divisor),      // input wire [31 : 0] s_axis_divisor_tdata
-    //     .s_axis_dividend_tvalid(1'b1),          // input wire s_axis_dividend_tvalid
-    //     .s_axis_dividend_tready(),  // output wire s_axis_dividend_tready
-    //     .s_axis_dividend_tdata(dividend),    // input wire [23 : 0] s_axis_dividend_tdata
-    //     .m_axis_dout_tvalid(),          // output wire m_axis_dout_tvalid
-    //     .m_axis_dout_tuser(div_by_zero),            // output wire [0 : 0] m_axis_dout_tuser
-    //     .m_axis_dout_tdata(result)            // output wire [39 : 0] m_axis_dout_tdata
-    // );
+    vec3_18_18 inv_ray_dir;
+    wire [2:0] div_by_zero;
 
-    //  assign result_out = result[35:0];
+    // ray inverse calculator
+    ray_dir_inverse dir_inverse_i (
+        .clk(sysclk),
+        .stall(1'b0),
+        .ray_dir(generated_ray.dir),
 
+        .inv_ray_dir(inv_ray_dir),
+        .div_by_zero(div_by_zero)
+    );
 
+    // ray_bbox intersect routine
 
-   // radix 2 division to compare resource usage
+    // create a temporary const bbox to use for now
+    bbox box = bbox_default;
+    range prev_range = range_default;
+    range range_out;
 
-    wire signed [35:0] result;
+    ray_bbox_intersect ray_box_intersect_i (
+        .clk(clk),
+        .stall(1'b0),
+        .ray_orig(generated_ray),
+        .inv_ray_dir(inv_ray_dir),
+        .box(box),
+        .prev_range(prev_range),
 
-    ray_inverse_div_wrapper ray_inverse_div_i (
-       .clk(sysclk),
-       .clk_en(1'b1),
-       .divisor_tvalid(1'b1),
-       .divisor(divisor),
-       .dividend_tvalid(1'b1),
-       .dividend(dividend),
-
-       .tvalid(),
-       .result(result),
-       .div_by_zero(div_by_zero)
-   );
-
-   assign result_out = result;
+        .hit(hit),
+        .range_out(range_out)
+    );
     
 endmodule

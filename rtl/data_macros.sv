@@ -13,8 +13,8 @@ import data_structs::*;
 `define LAMBERTIAN 2'd0
 `define MIRROR     2'd1
 
-`define INFINITY_28            28'h7FFFFFF
-`define NEGATIVE_INFINITY_28    28'h8000000
+`define INFINITY_49             49'h0FFFFFFFFFFFF
+`define NEGATIVE_INFINITY_49    49'h1000000000000
 
 // value "1" in Q12.16 fixed point format
 `define ONE 28'h0010000

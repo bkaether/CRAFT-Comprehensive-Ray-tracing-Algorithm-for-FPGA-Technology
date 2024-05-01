@@ -6,8 +6,8 @@
 This module outputs a ray from the scene camera at (0, 0, 0) to a randomly sampled point
 within the given pixel x and y values
 
-THE LATENCY OF THIS MODULE IS 2 CYCLES
-ray appears at output 2 cycles after pixels indices arrive at input.
+THE LATENCY OF THIS MODULE IS 4 CYCLES
+ray appears at output 4 cycles after pixels indices arrive at input.
 
 */
 module generate_ray (
@@ -58,9 +58,9 @@ module generate_ray (
 
     // CONSTANTS TO MULTIPLY PIXEL SCREEN COORDINATES BY
     // this constant accounts for both normalization (dividing by screen width and height)
-    // and transforming to camera space. For now, the camera position and orientation will be
-    // constant, so this can be just one combined constant. Here is the algorithm for transforming
-    // to camera space based on FOV
+    // and transforming to camera space. I plan to have the resolution, aspect ration, and
+    // camera FOV constant, so this can be just one combined constant. Here is the algorithm 
+    // for transforming to camera space based on FOV and aspect ratio
 
     // float vert_fov_rad = vert_fov * PI_F / 180.0;
 
@@ -107,6 +107,8 @@ module generate_ray (
     assign generated_ray.dir.z = `NEGATIVE_ONE;
 
     // TODO: In the future, I should add a camera to world space transform here to 
-    // support various camera positions
+    // support various camera positions. This will require changing bit widths, and
+    // potentially the use of certain Xilinx IP cores which are constrained to lower
+    // bit widths, such as the DSP macro
     
 endmodule

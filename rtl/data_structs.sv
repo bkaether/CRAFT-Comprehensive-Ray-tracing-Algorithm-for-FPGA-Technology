@@ -6,8 +6,8 @@ package data_structs;
     } vec2;
 
     typedef struct packed {
-        logic signed [27:0] min;
-        logic signed [27:0] max;
+        logic signed [48:0] min;
+        logic signed [48:0] max;
     } range;
 
     typedef struct packed {
@@ -53,7 +53,7 @@ package data_structs;
 
     // default struct constants
     const vec2 vec2_default = '0;
-    const range range_default = '{28'h8000000, 28'h7FFFFFF};
+    const range range_default = '{49'h1000000000000, 49'h0FFFFFFFFFFFF};
     const vec3 vec3_default = '0;
     const point point_default = '0;
     const spectrum spectrum_default = '1;
