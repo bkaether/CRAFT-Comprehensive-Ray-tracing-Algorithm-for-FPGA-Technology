@@ -92,14 +92,24 @@ module ray_bbox_intersect (
     wire signed [48:0] t0_z = swap ? mult_result_t1z : mult_result_t0z;
     wire signed [48:0] t1_z = swap ? mult_result_t0z : mult_result_t1z;
 
-    wire signed [48:0] tmin_x = (t0_x > prev_range.min) ? t0_x : prev_range.min;
-    wire signed [48:0] tmax_x = (t1_x < prev_range.max) ? t1_x : prev_range.max;
+    // flops to break up combinational logic
+    reg signed [48:0] t0_x_reg, t1_x_reg, t0_y_reg, t1_y_reg, t0_z_reg, t1_z_reg; 
 
-    wire signed [48:0] tmin_y = (t0_y > prev_range.min) ? t0_y : prev_range.min;
-    wire signed [48:0] tmax_y = (t1_y < prev_range.max) ? t1_y : prev_range.max;
+    `FF_EN(clk, 1'b1, '0, ~stall, t0_x_reg, t0_x)
+    `FF_EN(clk, 1'b1, '0, ~stall, t1_x_reg, t1_x)
+    `FF_EN(clk, 1'b1, '0, ~stall, t0_y_reg, t0_y)
+    `FF_EN(clk, 1'b1, '0, ~stall, t1_y_reg, t1_y)
+    `FF_EN(clk, 1'b1, '0, ~stall, t0_z_reg, t0_z)
+    `FF_EN(clk, 1'b1, '0, ~stall, t1_z_reg, t1_z)
 
-    wire signed [48:0] tmin_z = (t0_z > prev_range.min) ? t0_z : prev_range.min;
-    wire signed [48:0] tmax_z = (t1_z < prev_range.max) ? t1_z : prev_range.max;
+    wire signed [48:0] tmin_x = (t0_x_reg > prev_range.min) ? t0_x_reg : prev_range.min;
+    wire signed [48:0] tmax_x = (t1_x_reg < prev_range.max) ? t1_x_reg : prev_range.max;
+
+    wire signed [48:0] tmin_y = (t0_y_reg > prev_range.min) ? t0_y_reg : prev_range.min;
+    wire signed [48:0] tmax_y = (t1_y_reg < prev_range.max) ? t1_y_reg : prev_range.max;
+
+    wire signed [48:0] tmin_z = (t0_z_reg > prev_range.min) ? t0_z_reg : prev_range.min;
+    wire signed [48:0] tmax_z = (t1_z_reg < prev_range.max) ? t1_z_reg : prev_range.max;
     
     // outputs
     assign hit = ~((tmax_x <= tmin_x) | (tmax_y <= tmin_y) | (tmax_z <= tmin_z)); 

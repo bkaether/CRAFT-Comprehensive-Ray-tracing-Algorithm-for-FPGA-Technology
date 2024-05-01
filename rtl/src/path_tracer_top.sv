@@ -9,7 +9,7 @@ module path_tracer_top (
     input wire [9:0] pixel_x,   // [0, 799]
     input wire [9:0] pixel_y,   // [0, 599]
 
-    output wire hit
+    output wire hit_out
 );
 
     ray generated_ray;
@@ -45,16 +45,23 @@ module path_tracer_top (
     range prev_range = range_default;
     range range_out;
 
+    reg  hit_reg;
+    wire nxt_hit;
+
     ray_bbox_intersect ray_box_intersect_i (
-        .clk(clk),
+        .clk(sysclk),
         .stall(1'b0),
-        .ray_orig(generated_ray),
+        .ray_orig(generated_ray.orig),
         .inv_ray_dir(inv_ray_dir),
         .box(box),
         .prev_range(prev_range),
 
-        .hit(hit),
+        .hit(nxt_hit),
         .range_out(range_out)
     );
+
+    `FF_EN(sysclk, rst_n, 1'b0, 1'b1, hit_reg, nxt_hit)
+
+    assign hit_out = hit_reg;
     
 endmodule
