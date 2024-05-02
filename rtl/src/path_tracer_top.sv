@@ -1,6 +1,6 @@
-`include "../data_macros.sv"
+`timescale 1ns/1ps
 
-import data_structs::*;
+`include "../data_macros.sv"
 
 module path_tracer_top (
     input wire sysclk,
@@ -42,25 +42,30 @@ module path_tracer_top (
 
     // create a temporary const bbox to use for now
     bbox box = bbox_default;
-    range prev_range = range_default;
-    range range_out;
+    // range prev_range = range_default;
+    // range range_out;
+    wire [48:0] nxt_closest_hit_distance;
+    reg  [48:0] closest_hit_distance_reg;
 
     reg  hit_reg;
     wire nxt_hit;
 
     ray_bbox_intersect ray_box_intersect_i (
         .clk(sysclk),
+        .rst_n(rst_n),
         .stall(1'b0),
         .ray_orig(generated_ray.orig),
         .inv_ray_dir(inv_ray_dir),
         .box(box),
-        .prev_range(prev_range),
+        // .prev_range(prev_range),
 
         .hit(nxt_hit),
-        .range_out(range_out)
+        // .range_out(range_out)
+        .closest_hit_distance(nxt_closest_hit_distance)
     );
 
     `FF_EN(sysclk, rst_n, 1'b0, 1'b1, hit_reg, nxt_hit)
+    `FF_EN(sysclk, rst_n, 1'b0, 1'b1, closest_hit_distance_reg, nxt_closest_hit_distance)
 
     assign hit_out = hit_reg;
     

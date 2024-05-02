@@ -1,4 +1,4 @@
-`timescale 1ps/1ps
+`timescale 1ns/1ps
 
 `include "../data_macros.sv"
 
@@ -17,7 +17,7 @@ module generate_ray_tb();
 
     // integer i, j;
 
-    always #5 clk = ~clk;
+    always #4 clk = ~clk;
 
     generate_ray DUT (
         .clk(clk),
@@ -35,24 +35,24 @@ module generate_ray_tb();
         pixel_x <= '0;
         pixel_y <= '0;
         stall <= 1;
-        #20
+        #16
         stall <= 0;
         rst_n <= 1;
         pixel_x <= 100;
         pixel_y <= 100;
-        #10
+        #8
         pixel_x <= 200;
         pixel_y <= 200;
-        #10
+        #8
         stall <= 1;
-        pixel_x <= 300;
-        pixel_y <= 300;
-        #50
+        pixel_x <= 500;
+        pixel_y <= 500;
+        #40
         stall <= 0;
-        #10
-        pixel_x <= 400;
-        pixel_y <= 400;
-        #100
+        #8
+        pixel_x <= 700;
+        pixel_y <= 700;
+        #80
         // for (i = 0; i < pixel_h; i++) begin
         //     for (j = 0; j < pixel_w; j++) begin
         //         #10
@@ -60,7 +60,7 @@ module generate_ray_tb();
         //         pixel_y <= i;
         //     end
         // end
-        #200
+        #160
         $display("Test Finsihed");
         $finish();
     end

@@ -1,4 +1,4 @@
-`timescale  1ps/1ps
+`timescale  1ns/1ps
 
 class tb_input;
 
@@ -21,7 +21,7 @@ module ray_inverse_div_wrapper_tb();
     logic signed [35:0] result;
     logic div_by_zero;
 
-    always #5 clk = ~clk;
+    always #4 clk = ~clk;
 
     ray_inverse_div_wrapper DUT (
         .clk(clk),
@@ -70,7 +70,7 @@ module ray_inverse_div_wrapper_tb();
 
             // begin randomized testing
             repeat (256) begin
-                #10
+                #8
                 assert(rand_vals.randomize());
 
                 // set up test arrays
@@ -85,11 +85,11 @@ module ray_inverse_div_wrapper_tb();
 
                 
 
-                #10
+                #8
                 dividend_tvalid <= 0;
                 divisor_tvalid <= 0;
             end
-            #1000 // wait for all results
+            #800 // wait for all results
 
             for (int i = 0; i < 256; i = i + 1) begin
                 automatic real real_dividend = real'(test_dividends[i]);

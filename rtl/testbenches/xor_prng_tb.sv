@@ -1,4 +1,4 @@
-`timescale 1ps/1ps
+`timescale 1ns/1ps
 
 module xor_prng_tb();
 
@@ -14,7 +14,7 @@ module xor_prng_tb();
     reg [63:0] sum;  // Sum variable to avoid overflow with large CYCLES
     real average;    // For storing the average value
 
-    always #5 clk = ~clk;
+    always #4 clk = ~clk;
 
     xor_prng #(
         .SEED(16'h5A3C)
@@ -32,7 +32,7 @@ module xor_prng_tb();
         rst_n <= 0;
         sum <= 0;
         enable <= 1;
-        #20
+        #16
         rst_n <= 1;
 
         for (i = 0; i < CYCLES; i++) begin

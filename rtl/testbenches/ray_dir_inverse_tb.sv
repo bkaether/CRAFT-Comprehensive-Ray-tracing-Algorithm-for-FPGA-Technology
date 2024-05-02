@@ -1,4 +1,4 @@
-`timescale  1ps/1ps
+`timescale  1ns/1ps
 
 module ray_dir_inverse_tb();
 
@@ -9,7 +9,7 @@ module ray_dir_inverse_tb();
     vec3_18_18 inv_ray_dir;
     wire [2:0] div_by_zero;
 
-    always #5 clk = ~clk;
+    always #4 clk = ~clk;
 
     ray_dir_inverse DUT (
         .clk(clk),
@@ -24,13 +24,13 @@ module ray_dir_inverse_tb();
         clk <= 1;
         stall <= 1;
         ray_dir <= '0;
-        #40
+        #32
         ray_dir.x <= 8192; // 2^13 = 1/8
         ray_dir.y <= 2048; // 2^11 = 1/32
         ray_dir.z <= 0;    // include this to observe div by zero behavior
-        #40
+        #32
         stall <= 0;
-        #500
+        #400
         $display("Test Finsihed");
         $finish();
     end
