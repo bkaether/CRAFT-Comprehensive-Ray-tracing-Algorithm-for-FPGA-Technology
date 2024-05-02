@@ -4,14 +4,16 @@
 
 module path_tracer_top (
     input wire sysclk,
-    input wire rst_n,
+    // input wire rst_n,
     // input wire start,
     input wire [9:0] pixel_x,   // [0, 799]
     input wire [9:0] pixel_y,   // [0, 599]
 
     output wire hit_out,
-    output wire [15:0] test_data
+    output wire [48:0] test_data
 );
+
+    wire rst_n = 1'b1;
 
     ray generated_ray;
 
@@ -43,8 +45,6 @@ module path_tracer_top (
 
     // create a temporary const bbox to use for now
     bbox box = bbox_default;
-    // range prev_range = range_default;
-    // range range_out;
     wire [48:0] nxt_closest_hit_distance;
     reg  [48:0] closest_hit_distance_reg;
 
@@ -67,6 +67,6 @@ module path_tracer_top (
     `FF_EN(sysclk, rst_n, 1'b0, 1'b1, closest_hit_distance_reg, nxt_closest_hit_distance)
 
     assign hit_out = hit_reg;
-    assign test_data = closest_hit_distance_reg[15:0];
+    assign test_data = closest_hit_distance_reg;
     
 endmodule

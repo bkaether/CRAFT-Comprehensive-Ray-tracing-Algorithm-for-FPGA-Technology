@@ -103,19 +103,19 @@ module ray_bbox_intersect (
     wire signed [48:0] tmin_z = swap ? t1z : t0z;
     wire signed [48:0] tmax_z = swap ? t0z : t1z;
 
-    // // flops to break up combinational logic
-    // reg signed [48:0] t0_x_reg, t1_x_reg, t0_y_reg, t1_y_reg, t0_z_reg, t1_z_reg; 
+    // flops to break up combinational logic
+    reg signed [48:0] tmin_x_reg, tmax_x_reg, tmin_y_reg, tmax_y_reg, tmin_z_reg, tmax_z_reg; 
 
-    // `FF_EN(clk, 1'b1, '0, ~stall, t0_x_reg, t0_x)
-    // `FF_EN(clk, 1'b1, '0, ~stall, t1_x_reg, t1_x)
-    // `FF_EN(clk, 1'b1, '0, ~stall, t0_y_reg, t0_y)
-    // `FF_EN(clk, 1'b1, '0, ~stall, t1_y_reg, t1_y)
-    // `FF_EN(clk, 1'b1, '0, ~stall, t0_z_reg, t0_z)
-    // `FF_EN(clk, 1'b1, '0, ~stall, t1_z_reg, t1_z)
+    `FF_EN(clk, rst_n, '0, ~stall, tmin_x_reg, tmin_x)
+    `FF_EN(clk, rst_n, '0, ~stall, tmax_x_reg, tmax_x)
+    `FF_EN(clk, rst_n, '0, ~stall, tmin_y_reg, tmin_y)
+    `FF_EN(clk, rst_n, '0, ~stall, tmax_y_reg, tmax_y)
+    `FF_EN(clk, rst_n, '0, ~stall, tmin_z_reg, tmin_z)
+    `FF_EN(clk, rst_n, '0, ~stall, tmax_z_reg, tmax_z)
     
     // outputs
-    assign hit = ~((tmax_x <= tmin_x) | (tmax_y <= tmin_y) | (tmax_z <= tmin_z)); 
+    assign hit = ~((tmax_x_reg <= tmin_x_reg) | (tmax_y_reg <= tmin_y_reg) | (tmax_z_reg <= tmin_z_reg)); 
 
-    assign closest_hit_distance = (tmin_x > tmin_y) ? ((tmin_x > tmin_z) ? tmin_x : tmin_z) : ((tmin_y > tmin_z) ? tmin_y : tmin_z);
+    assign closest_hit_distance = (tmin_x_reg > tmin_y_reg) ? ((tmin_x_reg > tmin_z_reg) ? tmin_x_reg : tmin_z_reg) : ((tmin_y_reg > tmin_z_reg) ? tmin_y_reg : tmin_z_reg);
         
 endmodule

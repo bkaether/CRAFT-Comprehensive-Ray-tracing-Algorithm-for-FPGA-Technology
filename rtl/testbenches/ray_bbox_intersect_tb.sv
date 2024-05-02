@@ -27,10 +27,8 @@ module ray_bbox_intersect_tb();
         .inv_ray_dir(inv_ray_dir),
         .div_by_zero(div_by_zero),
         .box(box),
-        // .prev_range(prev_range),
 
         .hit(hit),
-        // .range_out(range_out)
         .closest_hit_distance(closest_hit_distance)
     );
 
@@ -53,9 +51,10 @@ module ray_bbox_intersect_tb();
         box.max.x <= (1 << 17);
         box.max.y <= (1 << 16);
         box.max.z <= (1 << 16);
-        #24
-        rst_n <= 1;
-        stall <= 0;
+        #8
+        inv_ray_dir.x <= '0;
+        inv_ray_dir.y <= (1 << 18);
+        inv_ray_dir.z <= '0;
         #40
         $display("Test Finsihed");
         $finish();
