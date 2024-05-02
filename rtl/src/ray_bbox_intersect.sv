@@ -10,10 +10,8 @@ module ray_bbox_intersect (
     input vec3_18_18 inv_ray_dir,
     input wire [2:0] div_by_zero,
     input bbox box,
-    // input range prev_range,
 
     output wire hit,
-    // output range range_out
     output wire [48:0] closest_hit_distance
 );
 
@@ -33,7 +31,7 @@ module ray_bbox_intersect (
     `FF_EN(clk, rst_n, '0, ~stall, div_by_zero_buf, div_by_zero)
 
     // x axis
-    mult_gen_0 mult_i_0 (
+    ray_bbox_mult mult_i_0 (
         .CLK(clk),              // input wire CLK
         .A(sub_min_x),          // input wire [28 : 0] A
         .B(inv_ray_dir.x),      // input wire [35 : 0] B
@@ -41,7 +39,7 @@ module ray_bbox_intersect (
         .P(mult_result_t0x)     // output wire [48 : 0] P
     );
 
-    mult_gen_0 mult_i_1 (
+    ray_bbox_mult mult_i_1 (
         .CLK(clk),              // input wire CLK
         .A(sub_max_x),          // input wire [28 : 0] A
         .B(inv_ray_dir.x),      // input wire [35 : 0] B
@@ -50,7 +48,7 @@ module ray_bbox_intersect (
     );
 
     // y axis
-    mult_gen_0 mult_i_2 (
+    ray_bbox_mult mult_i_2 (
         .CLK(clk),              // input wire CLK
         .A(sub_min_y),          // input wire [28 : 0] A
         .B(inv_ray_dir.y),      // input wire [35 : 0] B
@@ -58,7 +56,7 @@ module ray_bbox_intersect (
         .P(mult_result_t0y)     // output wire [48 : 0] P
     );
 
-    mult_gen_0 mult_i_3 (
+    ray_bbox_mult mult_i_3 (
         .CLK(clk),              // input wire CLK
         .A(sub_max_y),          // input wire [28 : 0] A
         .B(inv_ray_dir.y),      // input wire [35 : 0] B
@@ -67,7 +65,7 @@ module ray_bbox_intersect (
     );
 
     // z axis
-    mult_gen_0 mult_i_4 (
+    ray_bbox_mult mult_i_4 (
         .CLK(clk),              // input wire CLK
         .A(sub_min_z),          // input wire [28 : 0] A
         .B(inv_ray_dir.z),      // input wire [35 : 0] B
@@ -75,7 +73,7 @@ module ray_bbox_intersect (
         .P(mult_result_t0z)     // output wire [48 : 0] P
     );
 
-    mult_gen_0 mult_i_5 (
+    ray_bbox_mult mult_i_5 (
         .CLK(clk),              // input wire CLK
         .A(sub_max_z),          // input wire [28 : 0] A
         .B(inv_ray_dir.z),      // input wire [35 : 0] B
@@ -114,21 +112,9 @@ module ray_bbox_intersect (
     // `FF_EN(clk, 1'b1, '0, ~stall, t1_y_reg, t1_y)
     // `FF_EN(clk, 1'b1, '0, ~stall, t0_z_reg, t0_z)
     // `FF_EN(clk, 1'b1, '0, ~stall, t1_z_reg, t1_z)
-
-    // wire signed [48:0] tmin_x = (t0_x_reg > prev_range.min) ? t0_x_reg : prev_range.min;
-    // wire signed [48:0] tmax_x = (t1_x_reg < prev_range.max) ? t1_x_reg : prev_range.max;
-
-    // wire signed [48:0] tmin_y = (t0_y_reg > prev_range.min) ? t0_y_reg : prev_range.min;
-    // wire signed [48:0] tmax_y = (t1_y_reg < prev_range.max) ? t1_y_reg : prev_range.max;
-
-    // wire signed [48:0] tmin_z = (t0_z_reg > prev_range.min) ? t0_z_reg : prev_range.min;
-    // wire signed [48:0] tmax_z = (t1_z_reg < prev_range.max) ? t1_z_reg : prev_range.max;
     
     // outputs
     assign hit = ~((tmax_x <= tmin_x) | (tmax_y <= tmin_y) | (tmax_z <= tmin_z)); 
-
-    // assign range_out.min = (tmin_x > tmin_y) ? ((tmin_x > tmin_z) ? tmin_x : tmin_z) : ((tmin_y > tmin_z) ? tmin_y : tmin_z);
-    // assign range_out.max = (tmax_x < tmax_y) ? ((tmax_x < tmax_z) ? tmax_x : tmax_z) : ((tmax_y < tmax_z) ? tmax_y : tmax_z);
 
     assign closest_hit_distance = (tmin_x > tmin_y) ? ((tmin_x > tmin_z) ? tmin_x : tmin_z) : ((tmin_y > tmin_z) ? tmin_y : tmin_z);
         

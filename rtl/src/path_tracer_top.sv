@@ -9,7 +9,8 @@ module path_tracer_top (
     input wire [9:0] pixel_x,   // [0, 799]
     input wire [9:0] pixel_y,   // [0, 599]
 
-    output wire hit_out
+    output wire hit_out,
+    output wire [15:0] test_data
 );
 
     ray generated_ray;
@@ -57,10 +58,8 @@ module path_tracer_top (
         .ray_orig(generated_ray.orig),
         .inv_ray_dir(inv_ray_dir),
         .box(box),
-        // .prev_range(prev_range),
 
         .hit(nxt_hit),
-        // .range_out(range_out)
         .closest_hit_distance(nxt_closest_hit_distance)
     );
 
@@ -68,5 +67,6 @@ module path_tracer_top (
     `FF_EN(sysclk, rst_n, 1'b0, 1'b1, closest_hit_distance_reg, nxt_closest_hit_distance)
 
     assign hit_out = hit_reg;
+    assign test_data = closest_hit_distance_reg[15:0];
     
 endmodule
