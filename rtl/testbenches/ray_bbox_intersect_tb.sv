@@ -32,8 +32,41 @@ module ray_bbox_intersect_tb();
         .closest_hit_distance(closest_hit_distance)
     );
 
+    const bbox in_front = '{
+        min: '{x: (1 << 16), y: -(1 << 16), z: -(1 << 16)},
+        max: '{x: (1 << 17), y: (1 << 16), z: (1 << 16)}
+    };
+
+    const bbox behind = '{
+        min: '{x: -(1 << 17), y: -(1 << 16), z: -(1 << 16)},
+        max: '{x: -(1 << 16), y: (1 << 16), z: (1 << 16)}
+    };
+
+    const bbox above = '{
+        min: '{x: -(1 << 16), y: (1 << 16), z: -(1 << 16)},
+        max: '{x: (1 << 16), y: (1 << 17), z: (1 << 16)}
+    };
+
+    const bbox _inside = '{
+        min: '{x: -(1 << 16), y: -(1 << 16), z: -(1 << 16)},
+        max: '{x: (1 << 17), y: (1 << 17), z: (1 << 17)}
+    };
+
+    const vec3_18_18 positive_x_dir = '{
+        x: (1 << 18),
+        y: '0,
+        z: '0
+    };
+
+    const vec3_18_18 negative_x_dir = '{
+        x: -(1 << 18),
+        y: '0,
+        z: '0
+    };
+    
+
     initial begin
-        clk <= 0;
+        clk <= 1;
         rst_n <= 0;
         stall <= 1;
         #16
@@ -41,20 +74,24 @@ module ray_bbox_intersect_tb();
         #16
         stall <= 0;
         ray_orig <= vec3_default;
-        inv_ray_dir.x <= (1 << 18);
-        inv_ray_dir.y <= '0;
-        inv_ray_dir.z <= '0;
+        inv_ray_dir <= positive_x_dir;
         div_by_zero <= 3'b110;
-        box.min.x <= (1 << 16);
-        box.min.y <= -(1 << 16);
-        box.min.z <= -(1 << 16);
-        box.max.x <= (1 << 17);
-        box.max.y <= (1 << 16);
-        box.max.z <= (1 << 16);
+        box <= in_front;
         #8
-        inv_ray_dir.x <= '0;
-        inv_ray_dir.y <= (1 << 18);
-        inv_ray_dir.z <= '0;
+        box <= behind;
+        #8
+        box <= _inside;
+        #8
+        box <= above;
+        #8
+        inv_ray_dir <= negative_x_dir;
+        box <= behind;
+        #8
+        box <= in_front;
+        #8
+        box <= _inside;
+        #8
+        box <= above;
         #40
         $display("Test Finsihed");
         $finish();

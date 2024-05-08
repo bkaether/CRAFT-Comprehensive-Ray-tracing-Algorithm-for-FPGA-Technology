@@ -12,7 +12,7 @@ module ray_bbox_intersect (
     input bbox box,
 
     output wire hit,
-    output wire [48:0] closest_hit_distance
+    output wire signed [48:0] closest_hit_distance
 );
 
     wire signed [28:0] sub_min_x = box.min.x - ray_orig.x;
@@ -25,10 +25,32 @@ module ray_bbox_intersect (
     wire signed [48:0] mult_result_t0x, mult_result_t0y, mult_result_t0z;
     wire signed [48:0] mult_result_t1x, mult_result_t1y, mult_result_t1z;
 
-    // buffer for div by zero signal to compare against the correct multiplication result
-    reg [2:0] div_by_zero_buf;
+    // signals for bounds checking in case ray has a direction has components that are 0
+    wire [2:0] outside_bounds;
+    assign outside_bounds[0] = (ray_orig.x < box.min.x) | (ray_orig.x > box.max.x);
+    assign outside_bounds[1] = (ray_orig.y < box.min.y) | (ray_orig.y > box.max.y);
+    assign outside_bounds[2] = (ray_orig.z < box.min.z) | (ray_orig.z > box.max.z);
 
-    `FF_EN(clk, rst_n, '0, ~stall, div_by_zero_buf, div_by_zero)
+    reg [2:0] outside_bounds_buf1;
+    reg [2:0] outside_bounds_buf2;
+    `FF_EN(clk, rst_n, '0, ~stall, outside_bounds_buf1, outside_bounds)
+    `FF_EN(clk, rst_n, '0, ~stall, outside_bounds_buf2, outside_bounds_buf1)
+
+    // swap min and max signal based on the ray direction
+    wire [2:0] swap;
+    assign swap[0] = div_by_zero[0] ? 1'b0 : (inv_ray_dir.x < 0); // x
+    assign swap[1] = div_by_zero[1] ? 1'b0 : (inv_ray_dir.y < 0); // y
+    assign swap[2] = div_by_zero[2] ? 1'b0 : (inv_ray_dir.z < 0); // z
+
+    // buffer for div by zero signal to use after the 1 cycle latency multiplications
+    reg [2:0] div_by_zero_buf1;
+    reg [2:0] div_by_zero_buf2;
+    `FF_EN(clk, rst_n, '0, ~stall, div_by_zero_buf1, div_by_zero)
+    `FF_EN(clk, rst_n, '0, ~stall, div_by_zero_buf2, div_by_zero_buf1)
+
+    // buffer for swap signal to use after the 1 cycle latency multiplications
+    reg [2:0] swap_buf;
+    `FF_EN(clk, rst_n, '0, ~stall, swap_buf, swap)
 
     // x axis
     ray_bbox_mult mult_i_0 (
@@ -81,27 +103,22 @@ module ray_bbox_intersect (
         .P(mult_result_t1z)     // output wire [48 : 0] P
     );
 
-    // set mult result to +infinity if there is division by 0
-    wire signed [48:0] t0x = div_by_zero_buf[0] ? `NEGATIVE_INFINITY_49 : mult_result_t0x;
-    wire signed [48:0] t1x = div_by_zero_buf[0] ? `INFINITY_49 : mult_result_t1x;
-    wire signed [48:0] t0y = div_by_zero_buf[1] ? `NEGATIVE_INFINITY_49 : mult_result_t0y;
-    wire signed [48:0] t1y = div_by_zero_buf[1] ? `INFINITY_49 : mult_result_t1y;
-    wire signed [48:0] t0z = div_by_zero_buf[2] ? `NEGATIVE_INFINITY_49 : mult_result_t0z;
-    wire signed [48:0] t1z = div_by_zero_buf[2] ? `INFINITY_49 : mult_result_t1z;
+    // set mult result to +/-infinity if there is division by 0
+    wire signed [48:0] t0x = div_by_zero_buf1[0] ? `NEGATIVE_INFINITY_49 : mult_result_t0x;
+    wire signed [48:0] t1x = div_by_zero_buf1[0] ? `INFINITY_49 : mult_result_t1x;
+    wire signed [48:0] t0y = div_by_zero_buf1[1] ? `NEGATIVE_INFINITY_49 : mult_result_t0y;
+    wire signed [48:0] t1y = div_by_zero_buf1[1] ? `INFINITY_49 : mult_result_t1y;
+    wire signed [48:0] t0z = div_by_zero_buf1[2] ? `NEGATIVE_INFINITY_49 : mult_result_t0z;
+    wire signed [48:0] t1z = div_by_zero_buf1[2] ? `INFINITY_49 : mult_result_t1z;
 
-    wire [2:0] swap;
-    assign swap[0] = div_by_zero_buf[0] ? 1'b0 : (inv_ray_dir.x < 0); // x
-    assign swap[1] = div_by_zero_buf[1] ? 1'b0 : (inv_ray_dir.y < 0); // y
-    assign swap[2] = div_by_zero_buf[2] ? 1'b0 : (inv_ray_dir.z < 0); // z
+    wire signed [48:0] tmin_x = swap_buf[0] ? t1x : t0x;
+    wire signed [48:0] tmax_x = swap_buf[0] ? t0x : t1x;
 
-    wire signed [48:0] tmin_x = swap ? t1x : t0x;
-    wire signed [48:0] tmax_x = swap ? t0x : t1x;
+    wire signed [48:0] tmin_y = swap_buf[1] ? t1y : t0y;
+    wire signed [48:0] tmax_y = swap_buf[1] ? t0y : t1y;
 
-    wire signed [48:0] tmin_y = swap ? t1y : t0y;
-    wire signed [48:0] tmax_y = swap ? t0y : t1y;
-
-    wire signed [48:0] tmin_z = swap ? t1z : t0z;
-    wire signed [48:0] tmax_z = swap ? t0z : t1z;
+    wire signed [48:0] tmin_z = swap_buf[2] ? t1z : t0z;
+    wire signed [48:0] tmax_z = swap_buf[2] ? t0z : t1z;
 
     // flops to break up combinational logic
     reg signed [48:0] tmin_x_reg, tmax_x_reg, tmin_y_reg, tmax_y_reg, tmin_z_reg, tmax_z_reg; 
@@ -113,9 +130,18 @@ module ray_bbox_intersect (
     `FF_EN(clk, rst_n, '0, ~stall, tmin_z_reg, tmin_z)
     `FF_EN(clk, rst_n, '0, ~stall, tmax_z_reg, tmax_z)
     
-    // outputs
-    assign hit = ~((tmax_x_reg <= tmin_x_reg) | (tmax_y_reg <= tmin_y_reg) | (tmax_z_reg <= tmin_z_reg)); 
+    wire signed [48:0] time_upper_bound;
+    wire signed [48:0] time_lower_bound;
+    assign time_upper_bound = (tmax_x_reg < tmax_y_reg) ? ((tmax_x_reg < tmax_z_reg) ? tmax_x_reg : tmax_z_reg) : ((tmax_y_reg < tmax_z_reg) ? tmax_y_reg : tmax_z_reg);
+    assign time_lower_bound = (tmin_x_reg > tmin_y_reg) ? ((tmin_x_reg > tmin_z_reg) ? tmin_x_reg : tmin_z_reg) : ((tmin_y_reg > tmin_z_reg) ? tmin_y_reg : tmin_z_reg);
 
-    assign closest_hit_distance = (tmin_x_reg > tmin_y_reg) ? ((tmin_x_reg > tmin_z_reg) ? tmin_x_reg : tmin_z_reg) : ((tmin_y_reg > tmin_z_reg) ? tmin_y_reg : tmin_z_reg);
+    assign hit = ~((time_lower_bound > time_upper_bound) | 
+                   (div_by_zero_buf2[0] & outside_bounds_buf2[0]) |
+                   (div_by_zero_buf2[1] & outside_bounds_buf2[1]) |
+                   (div_by_zero_buf2[2] & outside_bounds_buf2[2]) |
+                   (time_lower_bound[48] & time_upper_bound[48]));
+
+    assign closest_hit_distance = hit ? (time_lower_bound[48] ? time_upper_bound : time_lower_bound) : `INFINITY_49; 
+    
         
 endmodule
