@@ -33,8 +33,10 @@ module ray_bbox_intersect (
 
     reg [2:0] outside_bounds_buf1;
     reg [2:0] outside_bounds_buf2;
+    reg [2:0] outside_bounds_buf3;
     `FF_EN(clk, rst_n, '0, ~stall, outside_bounds_buf1, outside_bounds)
     `FF_EN(clk, rst_n, '0, ~stall, outside_bounds_buf2, outside_bounds_buf1)
+    `FF_EN(clk, rst_n, '0, ~stall, outside_bounds_buf3, outside_bounds_buf2)
 
     // swap min and max signal based on the ray direction
     wire [2:0] swap;
@@ -45,8 +47,10 @@ module ray_bbox_intersect (
     // buffer for div by zero signal to use after the 1 cycle latency multiplications
     reg [2:0] div_by_zero_buf1;
     reg [2:0] div_by_zero_buf2;
+    reg [2:0] div_by_zero_buf3;
     `FF_EN(clk, rst_n, '0, ~stall, div_by_zero_buf1, div_by_zero)
     `FF_EN(clk, rst_n, '0, ~stall, div_by_zero_buf2, div_by_zero_buf1)
+    `FF_EN(clk, rst_n, '0, ~stall, div_by_zero_buf3, div_by_zero_buf2)
 
     // buffer for swap signal to use after the 1 cycle latency multiplications
     reg [2:0] swap_buf;
@@ -135,13 +139,19 @@ module ray_bbox_intersect (
     assign time_upper_bound = (tmax_x_reg < tmax_y_reg) ? ((tmax_x_reg < tmax_z_reg) ? tmax_x_reg : tmax_z_reg) : ((tmax_y_reg < tmax_z_reg) ? tmax_y_reg : tmax_z_reg);
     assign time_lower_bound = (tmin_x_reg > tmin_y_reg) ? ((tmin_x_reg > tmin_z_reg) ? tmin_x_reg : tmin_z_reg) : ((tmin_y_reg > tmin_z_reg) ? tmin_y_reg : tmin_z_reg);
 
-    assign hit = ~((time_lower_bound > time_upper_bound) | 
-                   (div_by_zero_buf2[0] & outside_bounds_buf2[0]) |
-                   (div_by_zero_buf2[1] & outside_bounds_buf2[1]) |
-                   (div_by_zero_buf2[2] & outside_bounds_buf2[2]) |
-                   (time_lower_bound[48] & time_upper_bound[48]));
+    reg signed [48:0] time_upper_bound_buf;
+    reg signed [48:0] time_lower_bound_buf;
 
-    assign closest_hit_distance = hit ? (time_lower_bound[48] ? time_upper_bound : time_lower_bound) : `INFINITY_49; 
+    `FF_EN(clk, rst_n, '0, ~stall, time_upper_bound_buf, time_upper_bound)
+    `FF_EN(clk, rst_n, '0, ~stall, time_lower_bound_buf, time_lower_bound)
+
+    assign hit = ~((time_lower_bound_buf > time_upper_bound_buf) | 
+                   (div_by_zero_buf3[0] & outside_bounds_buf3[0]) |
+                   (div_by_zero_buf3[1] & outside_bounds_buf3[1]) |
+                   (div_by_zero_buf3[2] & outside_bounds_buf3[2]) |
+                   (time_lower_bound_buf[48] & time_upper_bound_buf[48]));
+
+    assign closest_hit_distance = hit ? (time_lower_bound_buf[48] ? time_upper_bound_buf : time_lower_bound_buf) : `INFINITY_49; 
     
         
 endmodule

@@ -11,10 +11,8 @@ module ray_bbox_intersect_tb();
     vec3_18_18 inv_ray_dir;
     reg [2:0] div_by_zero;
     bbox box;
-    // range prev_range;
 
     wire hit;
-    // range range_out;
     wire [48:0] closest_hit_distance;
 
     always #4 clk = ~clk;
