@@ -1,2 +1,10 @@
+.vscode
+# Ignore all object files
+*.o
 
-/.vscode
+# Ignore all build folders
+build/
+cpp/build/
+
+# Ignore a compiled binary
+cpp/main
