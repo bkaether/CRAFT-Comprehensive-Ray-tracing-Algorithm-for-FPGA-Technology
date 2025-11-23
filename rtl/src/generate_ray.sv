@@ -50,30 +50,33 @@ module generate_ray (
     );
 
     // random, not normalized pixel sample locations
-    wire [25:0] rand_x = {pixel_x, offset_x};   // [0, 800)
-    wire [25:0] rand_y = {pixel_y, offset_y};   // [0, 600)
+    wire [25:0] rand_x = {pixel_x, offset_x};   // [0, 800), Q10.16
+    wire [25:0] rand_y = {pixel_y, offset_y};   // [0, 600), Q10.16
 
-    wire [33:0] mult_result_x;
-    wire [33:0] mult_result_y;
+    wire [33:0] mult_result_x; // Q10.16 * Q0.8 constant = Q10.24
+    wire [33:0] mult_result_y; // Q10.16 * Q0.8 constant = Q10.24
 
     // CONSTANTS TO MULTIPLY PIXEL SCREEN COORDINATES BY
-    // this constant accounts for both normalization (dividing by screen width and height)
-    // and transforming to camera space. I plan to have the resolution, aspect ration, and
-    // camera FOV constant, so this can be just one combined constant. Here is the algorithm 
-    // for transforming to camera space based on FOV and aspect ratio
+
+    // Vertical FOV = 70 degrees
+    // Aspect Ratio = 4:3
+    // Resolution = 800 x 600
+
+    // camera_space_x = ((pixel_x + random_offset_x) / screen_width) * sensor_plane_width - (sensor_plane_width / 2)
+    // camera_space_y = ((pixel_y + random_offset_y) / screen_height) * sensor_plane_height - (sensor_plane_height / 2)
+
+    // This formula:
+    //     - applies random pixel offset to screen space coordinates
+    //     - normalizes to [0, 1] by dividing by screen width/height
+    //     - scales to camera sensor plane size based on FOV and aspect ratio
+    //     - shifts to center around (0, 0) in camera space
 
     // float vert_fov_rad = vert_fov * PI_F / 180.0;
 
-    //// calculate dimensions of sensor plane using camera FOV
     // float sensor_plane_height =  2.0f * atan(vert_fov_rad); // sensor plane is 1 unit away in Z direction
     // float sensor_plane_width = aspect_ratio * sensor_plane_height;
 
-    //// we now want to transform the normalized screen space [0, 1]^2 coords to camera space
-    //// to do this, we multiply our screen_coord by the desired width/height, then shift by half the width and height
-    // Vec2 scale(sensor_plane_width, sensor_plane_height);
-    // Vec2 shift(sensor_plane_width*0.5f, sensor_plane_height*0.5f);
-
-    // Vec2 camera_xy = (screen_coord * scale) - shift;    
+    // We then convert to fixed point with 16 fractional bits by left shifting by 16 bits (multiplying by 2^16)
 
     // constant coefficient multiplier with 193 (fixed point representation of screen space to
     // camera space scale constant with 16 fractional bits)
@@ -94,8 +97,8 @@ module generate_ray (
     );
 
     // need to right shift the mult result back by 16 bits for proper fixed point interpretation before shifting
-    wire signed [18:0] camera_space_x = mult_result_x[33:16] - screen_to_camera_shift_x;  // Q3.16
-    wire signed [18:0] camera_space_y = mult_result_y[33:16] - screen_to_camera_shift_y;  // Q3.16
+    wire signed [18:0] camera_space_x = mult_result_x[33:16] - screen_to_camera_shift_x;  // Sign bit + Q2.16
+    wire signed [18:0] camera_space_y = mult_result_y[33:16] - screen_to_camera_shift_y;  // Sign bit + Q2.16
 
     // set output ray origin
     // by default camera position is the origin

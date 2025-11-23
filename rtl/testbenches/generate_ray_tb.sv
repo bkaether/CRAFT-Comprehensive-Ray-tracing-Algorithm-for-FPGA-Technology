@@ -4,15 +4,31 @@
 
 module generate_ray_tb();
 
-    parameter pixel_w = 800;
-    parameter pixel_h = 600;
+    // testbench knobs
+    localparam NUM_PIXELS = 50;
+    localparam PIXEL_WIDTH = 800;
+    localparam PIXEL_HEIGHT = 600;
 
+    // test vectors
+    int pixel_X[NUM_PIXELS];
+    int pixel_Y[NUM_PIXELS];
+
+    // result arrays
+    real expected_dir_x[NUM_PIXELS];
+    real expected_dir_y[NUM_PIXELS];
+    real expected_dir_z[NUM_PIXELS];
+
+    ray actual_rays[NUM_PIXELS];
+
+    // DUT signals
+    // inputs
     reg clk;
     reg rst_n;
     reg [9:0] pixel_x;
     reg [9:0] pixel_y;
     reg stall;
 
+    // outputs
     ray generated_ray;
 
     // integer i, j;
