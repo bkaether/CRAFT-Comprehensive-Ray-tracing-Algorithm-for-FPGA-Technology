@@ -5,20 +5,32 @@
 module generate_ray_tb();
 
     // testbench knobs
-    localparam NUM_PIXELS = 50;
+    localparam NUM_TEST_PIXELS = 50;
     localparam PIXEL_WIDTH = 800;
     localparam PIXEL_HEIGHT = 600;
+    localparam FOV_DEGREES = 70;
+    localparam ERROR_THRESHOLD = 0.01;
 
-    // test vectors
-    int pixel_X[NUM_PIXELS];
-    int pixel_Y[NUM_PIXELS];
+    // error counter
+    int num_errors = 0;
+
+    // test vector inputs
+    int test_pixels_x[NUM_TEST_PIXELS];
+    int test_pixels_y[NUM_TEST_PIXELS];
 
     // result arrays
-    real expected_dir_x[NUM_PIXELS];
-    real expected_dir_y[NUM_PIXELS];
-    real expected_dir_z[NUM_PIXELS];
+    real expected_dir_x[NUM_TEST_PIXELS];
+    real expected_dir_y[NUM_TEST_PIXELS];
+    real expected_dir_z[NUM_TEST_PIXELS];
 
-    ray actual_rays[NUM_PIXELS];
+    ray actual_rays[NUM_TEST_PIXELS];
+
+    // random values used by the hardware for each calculation in Q0.16 fixed point format, for use in calculating expected output
+    bit [15:0] prng_x_fxpt[NUM_TEST_PIXELS];
+    bit [15:0] prng_y_fxpt[NUM_TEST_PIXELS];
+    // real decimal random values used by hardware
+    real prng_x[NUM_TEST_PIXELS];
+    real prng_y[NUM_TEST_PIXELS];
 
     // DUT signals
     // inputs
@@ -31,7 +43,7 @@ module generate_ray_tb();
     // outputs
     ray generated_ray;
 
-    // integer i, j;
+    integer i;
 
     always #4 clk = ~clk;
 
@@ -45,38 +57,90 @@ module generate_ray_tb();
         .generated_ray(generated_ray)
     );
 
+    task test_dut();
+        for (i = 0; i < NUM_TEST_PIXELS; i = i + 1) begin
+            // send pixel coords to DUT
+            pixel_x = test_pixels_x[i];
+            pixel_y = test_pixels_y[i];
+
+            // capture prng values used
+            prng_x_fxpt[i] = DUT.offset_x;
+            prng_y_fxpt[i] = DUT.offset_y;
+
+            // wait 4 cycle latency before storing DUT output
+            repeat (4) @(posedge clk);
+
+            // store DUT output for this sample
+            actual_rays[i] = generated_ray;
+        end
+    endtask
+
+    task compute_expected();
+        // calculate sensor plane width and height
+        real vert_fov_rad;
+        real sensor_plane_height;
+        real sensor_plane_width;
+
+        vert_fov_rad = (FOV_DEGREES * $pi) / 180;
+        sensor_plane_height = 2 * $atan(vert_fov_rad);
+        sensor_plane_width = (PIXEL_WIDTH / PIXEL_HEIGHT) * sensor_plane_height;
+
+        for (i = 0; i < NUM_TEST_PIXELS; i = i + 1) begin
+            // convert fxpt offests from prng to real decimal offsets
+            prng_x[i] = prng_x_fxpt[i] / 65536; // 16 fractional bits
+            prng_y[i] = prng_y_fxpt[i] / 65536;
+            
+            // calculate camera space x and y
+            expected_dir_x[i] = ((test_pixels_x[i] + prng_x[i]) / PIXEL_WIDTH * sensor_plane_width) - (sensor_plane_width / 2);
+            expected_dir_y[i] = ((test_pixels_y[i] + prng_y[i]) / PIXEL_HEIGHT * sensor_plane_height) - (sensor_plane_height / 2);
+            expected_dir_z[i] = -1;
+
+        end
+
+    endtask
+
     initial begin
-        clk <= 1;
-        rst_n <= 0;
-        pixel_x <= '0;
-        pixel_y <= '0;
-        stall <= 1;
-        #16
+        // generate pixel values for test stimulus
+        for (i = 0; i < NUM_TEST_PIXELS; i = i + 1) begin
+            test_pixels_x[i] = $urandomrange(0, 800);
+            test_pixels_y[i] = $urandomrange(0, 600);
+        end
+
+        // reset sequence
+        clk = 0;
+        rst_n = 0;
+        pixel_x = '0;
+        pixel_y = '0;
+        stall = 1;
+        
+        @(posedge clk)
+        @(posedge clk)
+
         stall <= 0;
         rst_n <= 1;
-        pixel_x <= 100;
-        pixel_y <= 100;
-        #8
-        pixel_x <= 200;
-        pixel_y <= 200;
-        #8
-        stall <= 1;
-        pixel_x <= 500;
-        pixel_y <= 500;
-        #40
-        stall <= 0;
-        #8
-        pixel_x <= 700;
-        pixel_y <= 700;
-        #80
-        // for (i = 0; i < pixel_h; i++) begin
-        //     for (j = 0; j < pixel_w; j++) begin
-        //         #10
-        //         pixel_x <= j;
-        //         pixel_y <= i;
-        //     end
-        // end
-        #160
+        
+        @(posedge clk)
+        @(posedge clk)
+
+        // apply stimulus
+        test_dut();
+
+        // calculate expected rays
+        compute_expected();
+
+        // check_output
+        for (i = 0; i < NUM_TEST_PIXELS; i = i + 1) begin
+            if ($abs(actual_rays[i].dir.x - expected_dir_x[i]) > ERROR_THRESHOLD) begin
+                num_errors = num_errors + 1;
+            end
+
+            if ($abs(actual_rays[i].dir.y - expected_dir_y[i]) > ERROR_THRESHOLD) begin
+                num_errors = num_errors + 1;
+            end
+        end
+
+        assert(num_errors == 0)
+
         $display("Test Finsihed");
         $finish();
     end

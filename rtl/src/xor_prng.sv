@@ -2,7 +2,7 @@
 
 `include "../data_macros.sv"
 
-// 12 bit xor shift based PRNG
+// 16 bit xor shift based PRNG
 module xor_prng #(
     parameter SEED = 16'h1ACE
 ) (
