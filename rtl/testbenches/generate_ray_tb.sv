@@ -154,8 +154,7 @@ module generate_ray_tb();
         end
 
         assert(num_errors === 0) else begin
-            $fatal("Actual output did not match expected output. Number of errors: %0d", num_errors);
-            $finish();
+            $fatal(0, "Actual output did not match expected output. Number of errors: %0d", num_errors);
         end
 
         $display("Test Passed!");
