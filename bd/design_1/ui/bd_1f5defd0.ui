@@ -14,16 +14,16 @@ preplace inst bvh_node_mem_ctrl_PS -pg 1 -lvl 3 -x 890 -y 340 -defaultsOSRD
 preplace inst axi_smc -pg 1 -lvl 2 -x 590 -y 170 -defaultsOSRD
 preplace inst bvh_node_mem -pg 1 -lvl 4 -x 1160 -y 350 -defaultsOSRD
 preplace inst bvh_primitive_mem -pg 1 -lvl 4 -x 1160 -y 210 -defaultsOSRD
-preplace netloc processing_system7_0_FCLK_CLK0 1 0 3 20 220 440 250 740
-preplace netloc processing_system7_0_FCLK_RESET0_N 1 0 2 30 230 430
-preplace netloc rst_ps7_0_100M_peripheral_aresetn 1 1 2 450 260 750
-preplace netloc axi_smc_M00_AXI 1 2 1 730 160n
+preplace netloc processing_system7_0_FCLK_CLK0 1 0 3 40 220 420 250 750
+preplace netloc processing_system7_0_FCLK_RESET0_N 1 0 2 50 230 410
+preplace netloc rst_ps7_0_100M_peripheral_aresetn 1 1 2 460 260 760
+preplace netloc axi_smc_M00_AXI 1 2 1 720 160n
 preplace netloc axi_smc_M01_AXI 1 2 1 N 180
 preplace netloc bvh_node_mem_ctrl_PS_BRAM_PORTA 1 3 1 NJ 340
 preplace netloc bvh_primitive_mem_ctrl_PS_BRAM_PORTA 1 3 1 NJ 200
 preplace netloc processing_system7_0_DDR 1 1 4 NJ 60 NJ 60 NJ 60 NJ
 preplace netloc processing_system7_0_FIXED_IO 1 1 4 NJ 80 NJ 80 NJ 80 NJ
-preplace netloc processing_system7_0_M_AXI_GP0 1 1 1 450 120n
+preplace netloc processing_system7_0_M_AXI_GP0 1 1 1 430 120n
 levelinfo -pg 1 0 230 590 890 1160 1310
 pagesize -pg 1 -db -bbox -sgen 0 0 1470 560
 "
