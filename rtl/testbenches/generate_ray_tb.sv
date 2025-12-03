@@ -40,10 +40,12 @@ module generate_ray_tb();
     reg rst_n;
     reg [9:0] pixel_x;
     reg [9:0] pixel_y;
+    reg pixel_valid;
     reg stall;
 
     // outputs
     ray generated_ray;
+    wire ray_valid;
 
     always #4 clk = ~clk;
 

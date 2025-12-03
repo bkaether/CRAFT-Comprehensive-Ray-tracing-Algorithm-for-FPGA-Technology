@@ -16,8 +16,10 @@ module generate_ray (
     input wire stall,
     input wire [9:0] pixel_x,   // [0, 799]
     input wire [9:0] pixel_y,   // [0, 599]
+    input wire pixel_valid,
 
-    output ray generated_ray
+    output ray generated_ray,
+    output wire ray_valid
 );
 
     localparam [16:0] screen_to_camera_shift_x = 17'd77321;
@@ -108,6 +110,14 @@ module generate_ray (
     assign generated_ray.dir.x = camera_space_x;
     assign generated_ray.dir.y = camera_space_y;
     assign generated_ray.dir.z = `NEGATIVE_ONE;
+
+    /////////////////////////////////////////////////////////////////////////
+    // valid signal pipeline
+    /////////////////////////////////////////////////////////////////////////
+    reg [4:0] ray_valid_pipe;
+
+    `FF_EN(clk, rst_n, 5'd0, ~stall, ray_valid_pipe, {ray_valid_pipe[3:0], pixel_valid})
+    assign ray_valid = ray_valid_pipe[4];
 
     // TODO: In the future, I should add a camera to world space transform here to 
     // support various camera positions. This will require changing bit widths, and
