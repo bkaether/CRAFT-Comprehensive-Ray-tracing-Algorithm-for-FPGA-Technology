@@ -7,7 +7,7 @@ import tb_pkg::*;
 module generate_ray_tb();
 
     // testbench knobs
-    localparam int NUM_TEST_PIXELS = 50;
+    localparam int NUM_TEST_PIXELS = 10;
     localparam int PIXEL_WIDTH = 800;
     localparam int PIXEL_HEIGHT = 600;
     localparam real FOV_DEGREES = 70.0;
@@ -52,32 +52,49 @@ module generate_ray_tb();
     generate_ray DUT (
         .clk(clk),
         .rst_n(rst_n),
+        .stall(stall),
         .pixel_x(pixel_x),
         .pixel_y(pixel_y),
-        .stall(stall),
+        .pixel_valid(pixel_valid),
 
-        .generated_ray(generated_ray)
+        .generated_ray(generated_ray),
+        .ray_valid(ray_valid)
     );
 
     task automatic test_dut();
-        for (integer i = 0; i < NUM_TEST_PIXELS; i = i + 1) begin
-            // send pixel coords to DUT
-            pixel_x = test_pixels_x[i];
-            pixel_y = test_pixels_y[i];
+        generate_ray_input_trans trans = new();
+        integer num_valid_pixels = 0;
 
-            // capture prng values used for multiplication
-            prng_x_fxpt[i] = DUT.offset_x;
-            prng_y_fxpt[i] = DUT.offset_y;
+        // loop until NUM_TEST_PIXELS valid pixels have been given to the dut
+        while (num_valid_pixels < NUM_TEST_PIXELS) begin
+            // randomize input transaction
+            trans.randomize();
 
-            // wait for multiply IP to sample inputs
-            @(posedge clk);
+            // apply input transaction to DUT
+            pixel_x = trans.pixel_x;
+            pixel_y = trans.pixel_y;
+            pixel_valid = trans.pixel_valid;
+            stall = trans.stall;
 
-            // wait 4 cycle latency before storing DUT output
-            repeat (4) @(posedge clk);
+            @(posedge clk)
 
-            // store DUT output for this sample
-            actual_rays[i] = generated_ray;
+            if (pixel_valid) begin
+                // save pixel values for expected value calculation
+                test_pixels_x[num_valid_pixels] = pixel_x;
+                test_pixels_y[num_valid_pixels] = pixel_y;
+                // save prng values generated and used by hardware
+                prng_x_fxpt[num_valid_pixels] = DUT.offset_x;
+                prng_y_fxpt[num_valid_pixels] = DUT.offset_y;
+
+                // increment valid pixel counter
+                num_valid_pixels = num_valid_pixels + 1;
+            end
         end
+
+        // once correct number of valid samples has been given to DUT, wait some time for outputs to propogate through DUT with stalls
+        stall = 1'b0;
+        pixel_valid = 1'b0;
+        #1000ns;
     endtask
 
     task automatic compute_expected();
@@ -98,37 +115,31 @@ module generate_ray_tb();
             // calculate camera space x and y
             expected_dir_x[i] = ((test_pixels_x[i] + prng_x[i]) / PIXEL_WIDTH * sensor_plane_width) - (sensor_plane_width / 2);
             expected_dir_y[i] = ((test_pixels_y[i] + prng_y[i]) / PIXEL_HEIGHT * sensor_plane_height) - (sensor_plane_height / 2);
-
         end
 
     endtask
 
     initial begin
-        // generate pixel values for test stimulus
-        for (integer i = 0; i < NUM_TEST_PIXELS; i = i + 1) begin
-            test_pixels_x[i] = $urandom_range(PIXEL_WIDTH-1, 0);
-            test_pixels_y[i] = $urandom_range(PIXEL_HEIGHT-1, 0);
-        end
-
         // reset sequence
-        clk = 0;
-        rst_n = 0;
+        clk = 1'b0;
+        rst_n = 1'b0;
+        stall = 1'b1;
         pixel_x = '0;
         pixel_y = '0;
-        stall = 1;
+        pixel_valid = 1'b0;
         
         @(posedge clk)
         @(posedge clk)
 
-        stall <= 0;
-        rst_n <= 1;
+        stall <= 1'b0;
+        rst_n <= 1'b1;
         
         @(posedge clk)
         @(posedge clk)
 
-        // apply stimulus
+        // apply stimulus and monitor output
         test_dut();
-
+        
         // calculate expected rays
         compute_expected();
 
@@ -144,14 +155,14 @@ module generate_ray_tb();
                 num_errors = num_errors + 1;
                 $error("X direction mismatch. Expected %f, got %f", expected_dir_x[i], actual_x);
             end else begin
-                $display("Matched X direction for test pixel %d", i);
+                $display("Matched X direction value %f for test pixel %d", actual_x, i);
             end
 
             if (abs_real(diff_y) > ERROR_THRESHOLD) begin
                 num_errors = num_errors + 1;
                  $error("Y direction mismatch. Expected %f, got %f", expected_dir_y[i], actual_y);
             end else begin
-                $display("Matched Y direction for test pixel %d", i);
+                $display("Matched Y direction value %f for test pixel %d", actual_y, i);
             end
         end
 
@@ -161,6 +172,16 @@ module generate_ray_tb();
 
         $display("Test Passed!");
         $finish();
+    end
+
+
+    // monitor output for valid rays
+    integer dut_valid_ray_cntr = 0;
+    always @(posedge clk) begin
+        if (ray_valid) begin
+            actual_rays[dut_valid_ray_cntr] = generated_ray; 
+            dut_valid_ray_cntr = dut_valid_ray_cntr + 1;
+        end
     end
 
 endmodule

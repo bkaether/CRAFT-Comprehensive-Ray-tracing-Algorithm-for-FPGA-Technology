@@ -8,4 +8,6 @@ package tb_pkg;
         return (x < 0.0) ? -x : x;
     endfunction
 
+    `include "../lib/trans/generate_ray_input_trans.sv"
+
 endpackage
