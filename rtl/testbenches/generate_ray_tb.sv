@@ -7,7 +7,7 @@ import tb_pkg::*;
 module generate_ray_tb();
 
     // testbench knobs
-    localparam int NUM_TEST_PIXELS = 10;
+    localparam int NUM_TEST_PIXELS = 50;
     localparam int PIXEL_WIDTH = 800;
     localparam int PIXEL_HEIGHT = 600;
     localparam real FOV_DEGREES = 70.0;

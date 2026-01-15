@@ -117,7 +117,7 @@ module generate_ray (
     reg [4:0] ray_valid_pipe;
 
     `FF_EN(clk, rst_n, 5'd0, ~stall, ray_valid_pipe, {ray_valid_pipe[3:0], pixel_valid})
-    assign ray_valid = ray_valid_pipe[4];
+    assign ray_valid = ray_valid_pipe[4] & ~stall;
 
     // TODO: In the future, I should add a camera to world space transform here to 
     // support various camera positions. This will require changing bit widths, and
