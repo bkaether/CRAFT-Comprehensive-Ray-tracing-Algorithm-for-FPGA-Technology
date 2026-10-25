@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-`include "../data_macros.sv"
+`include "ff_macros.svh"
 
 /*
 This module outputs a ray from the scene camera at (0, 0, 0) to a randomly sampled point
@@ -10,7 +10,9 @@ THE LATENCY OF THIS MODULE IS 4 CYCLES
 ray appears at output 4 cycles after pixels indices arrive at input.
 
 */
-module generate_ray (
+module generate_ray 
+    import data_structs_pkg::*;
+(
     input wire clk,
     input wire rst_n,
     input wire stall,
@@ -60,7 +62,7 @@ module generate_ray (
 
     // CONSTANTS TO MULTIPLY PIXEL SCREEN COORDINATES BY
 
-    // Vertical FOV = 70 degrees
+    // Vertical FOV = 83 degrees
     // Aspect Ratio = 4:3
     // Resolution = 800 x 600
 
@@ -75,7 +77,7 @@ module generate_ray (
 
     // float vert_fov_rad = vert_fov * PI_F / 180.0;
 
-    // float sensor_plane_height =  2.0f * atan(vert_fov_rad); // sensor plane is 1 unit away in Z direction
+    // float sensor_plane_height =  2.0f * tan(vert_fov_rad/2.0); // sensor plane is 1 unit away in Z direction
     // float sensor_plane_width = aspect_ratio * sensor_plane_height;
 
     // We then convert to fixed point with 16 fractional bits by left shifting by 16 bits (multiplying by 2^16)
@@ -104,12 +106,12 @@ module generate_ray (
 
     // set output ray origin
     // by default camera position is the origin
-    assign generated_ray.orig = point_default;
+    assign generated_ray.orig = POINT_DEFAULT;
 
     // set output ray direction
     assign generated_ray.dir.x = camera_space_x;
     assign generated_ray.dir.y = camera_space_y;
-    assign generated_ray.dir.z = `NEGATIVE_ONE;
+    assign generated_ray.dir.z = NEGATIVE_ONE_Q12_16; // ray points into the scene, which is in the negative z direction
 
     /////////////////////////////////////////////////////////////////////////
     // valid signal pipeline

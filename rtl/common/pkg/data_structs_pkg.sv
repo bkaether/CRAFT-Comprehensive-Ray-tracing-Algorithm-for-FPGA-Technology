@@ -1,4 +1,9 @@
-package data_structs;
+package data_structs_pkg;
+
+    typedef enum logic [7:0] {
+        LAMBERTIAN = 8'd0,
+        MIRROR     = 8'd1
+    } material;
 
     typedef struct packed {
         logic signed [27:0] x;
@@ -56,7 +61,7 @@ package data_structs;
         vec3 v1;
         vec3 v2;
         vec3 normal;
-        logic [7:0] material;
+        material mat;
         spectrum color;
     } triangle;
 
@@ -68,14 +73,27 @@ package data_structs;
         logic [15:0] right;
     } bvh_node;
 
+    localparam [9:0] PIXEL_WIDTH = 10'd800;
+    localparam [9:0] PIXEL_HEIGHT = 10'd600;
+
+    // reciprocal of pixel dimensions in fixed point format with 16 fractional bits
+    localparam [15:0] PIXEL_WIDTH_INV_Q0_16   = 16'd82;
+    localparam [15:0] PIXEL_HEIGHT_INV_Q0_16  = 16'd109;
+
+    localparam signed [48:0] INFINITY_49             = 49'h0FFFFFFFFFFFF;
+    localparam signed [48:0] NEGATIVE_INFINITY_49    = 49'h1000000000000;
+
+    // value "1" in Q12.16 fixed point format
+    localparam signed [27:0] ONE_Q12_16          = 28'h0010000;
+    localparam signed [27:0] NEGATIVE_ONE_Q12_16 = 28'hFFF0000;
+
     // default struct constants
-    const vec2 vec2_default = '0;
-    const range range_default = '{49'h1000000000000, 49'h0FFFFFFFFFFFF};
-    const vec3 vec3_default = '0;
-    const point point_default = '0;
-    const spectrum spectrum_default = '1;
-    const ray ray_default = '0;
-    const bbox bbox_default = '0;
-    
+    localparam vec2 VEC2_DEFAULT = '0;
+    localparam range RANGE_DEFAULT = '{NEGATIVE_INFINITY_49, INFINITY_49};
+    localparam vec3 VEC3_DEFAULT = '0;
+    localparam point POINT_DEFAULT = '0;
+    localparam spectrum SPECTRUM_DEFAULT = '1;
+    localparam ray RAY_DEFAULT = '0;
+    localparam bbox BBOX_DEFAULT = '0;
 
 endpackage

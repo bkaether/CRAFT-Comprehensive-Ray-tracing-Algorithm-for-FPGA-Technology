@@ -1,6 +1,6 @@
 `timescale  1ns/1ps
 
-`include "../data_macros.sv"
+`include "ff_macros.sv"
 
 module ray_bvh_intersect (
     input wire clk,

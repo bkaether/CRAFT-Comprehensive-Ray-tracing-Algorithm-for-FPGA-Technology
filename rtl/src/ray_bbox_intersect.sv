@@ -1,8 +1,10 @@
 `timescale 1ns/1ps
 
-`include "../data_macros.sv"
+`include "ff_macros.sv"
 
-module ray_bbox_intersect (
+module ray_bbox_intersect 
+    import data_structs_pkg::*;
+(
     input wire clk,
     input wire rst_n,
     input wire stall,
@@ -108,12 +110,12 @@ module ray_bbox_intersect (
     );
 
     // set mult result to +/-infinity if there is division by 0
-    wire signed [48:0] t0x = div_by_zero_buf1[0] ? `NEGATIVE_INFINITY_49 : mult_result_t0x;
-    wire signed [48:0] t1x = div_by_zero_buf1[0] ? `INFINITY_49 : mult_result_t1x;
-    wire signed [48:0] t0y = div_by_zero_buf1[1] ? `NEGATIVE_INFINITY_49 : mult_result_t0y;
-    wire signed [48:0] t1y = div_by_zero_buf1[1] ? `INFINITY_49 : mult_result_t1y;
-    wire signed [48:0] t0z = div_by_zero_buf1[2] ? `NEGATIVE_INFINITY_49 : mult_result_t0z;
-    wire signed [48:0] t1z = div_by_zero_buf1[2] ? `INFINITY_49 : mult_result_t1z;
+    wire signed [48:0] t0x = div_by_zero_buf1[0] ? NEGATIVE_INFINITY_49 : mult_result_t0x;
+    wire signed [48:0] t1x = div_by_zero_buf1[0] ? INFINITY_49 : mult_result_t1x;
+    wire signed [48:0] t0y = div_by_zero_buf1[1] ? NEGATIVE_INFINITY_49 : mult_result_t0y;
+    wire signed [48:0] t1y = div_by_zero_buf1[1] ? INFINITY_49 : mult_result_t1y;
+    wire signed [48:0] t0z = div_by_zero_buf1[2] ? NEGATIVE_INFINITY_49 : mult_result_t0z;
+    wire signed [48:0] t1z = div_by_zero_buf1[2] ? INFINITY_49 : mult_result_t1z;
 
     wire signed [48:0] tmin_x = swap_buf[0] ? t1x : t0x;
     wire signed [48:0] tmax_x = swap_buf[0] ? t0x : t1x;
@@ -151,7 +153,7 @@ module ray_bbox_intersect (
                    (div_by_zero_buf3[2] & outside_bounds_buf3[2]) |
                    (time_lower_bound_buf[48] & time_upper_bound_buf[48]));
 
-    assign closest_hit_distance = hit ? (time_lower_bound_buf[48] ? time_upper_bound_buf : time_lower_bound_buf) : `INFINITY_49; 
+    assign closest_hit_distance = hit ? (time_lower_bound_buf[48] ? time_upper_bound_buf : time_lower_bound_buf) : INFINITY_49; 
     
         
 endmodule
