@@ -116,14 +116,29 @@ module generate_ray
     /////////////////////////////////////////////////////////////////////////
     // valid signal pipeline
     /////////////////////////////////////////////////////////////////////////
-    reg [4:0] ray_valid_pipe;
+    reg [3:0] ray_valid_pipe;
 
-    `FF_EN(clk, rst_n, 5'd0, ~stall, ray_valid_pipe, {ray_valid_pipe[3:0], pixel_valid})
-    assign ray_valid = ray_valid_pipe[4] & ~stall;
+    `FF_EN(clk, rst_n, 4'd0, ~stall, ray_valid_pipe, {ray_valid_pipe[2:0], pixel_valid})
+    assign ray_valid = ray_valid_pipe[3];
 
     // TODO: In the future, I should add a camera to world space transform here to 
     // support various camera positions. This will require changing bit widths, and
     // potentially the use of certain Xilinx IP cores which are constrained to lower
     // bit widths, such as the DSP macro
+
+    //////////////////////////////////////////////////////////////////////////
+    // assertions
+    //////////////////////////////////////////////////////////////////////////
+`ifndef SYNTHESIS
+
+    property p_ray_held_during_stall;
+        @(posedge clk) disable iff (!rst_n)
+        (ray_valid && stall) |=> (ray_valid && $stable(generated_ray));     // $stable() checks that its argument is the same as it was in the previous cycle
+    endproperty
+
+    a_ray_held_during_stall: assert property (p_ray_held_during_stall)
+        else $error("Ray output was not held stable during stall condition");
+
+`endif
     
 endmodule

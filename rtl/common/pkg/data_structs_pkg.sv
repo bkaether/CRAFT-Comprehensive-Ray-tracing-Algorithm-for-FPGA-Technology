@@ -1,3 +1,5 @@
+`timescale 1ns/1ps
+
 package data_structs_pkg;
 
     typedef enum logic [7:0] {

@@ -6,14 +6,20 @@ interface generate_ray_intf
     input logic clk
 );
 
+    // module inputs
     logic rst_n;
     logic stall;
     logic [9:0] pixel_x;
     logic [9:0] pixel_y;
     logic pixel_valid;
 
+    // module outputs
     ray generated_ray;
     logic ray_valid;
+
+    // probes to internal signals for testbench visibility
+    logic [15:0] prng_offset_x;
+    logic [15:0] prng_offset_y;
 
     // Driver view: drives DUT inputs just after the edge,
     // samples DUT outputs just before it.
@@ -28,6 +34,9 @@ interface generate_ray_intf
         input generated_ray;
         input ray_valid;
 
+        input prng_offset_x;
+        input prng_offset_y;
+
     endclocking
 
     // Passive view: samples everything, drives nothing.
@@ -41,6 +50,9 @@ interface generate_ray_intf
 
         input generated_ray;
         input ray_valid;
+
+        input prng_offset_x;
+        input prng_offset_y;
 
     endclocking
 

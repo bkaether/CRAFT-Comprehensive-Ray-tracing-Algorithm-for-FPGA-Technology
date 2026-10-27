@@ -2,7 +2,9 @@
 
 `include "ff_macros.sv"
 
-module ray_bvh_intersect (
+module ray_bvh_intersect
+    import data_structs_pkg::*;
+(
     input wire clk,
     input wire rst_n,
     input vec3 ray_orig,

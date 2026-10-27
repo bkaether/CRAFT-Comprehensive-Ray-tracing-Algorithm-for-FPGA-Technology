@@ -17,6 +17,5 @@ class generate_ray_input_trans;
         solve pixel_valid before stall;
         (pixel_valid == 1'b1) -> (stall == 1'b0);
     }
-    
 
 endclass
