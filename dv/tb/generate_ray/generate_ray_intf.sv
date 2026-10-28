@@ -8,7 +8,7 @@ interface generate_ray_intf
 
     // module inputs
     logic rst_n;
-    logic stall;
+    logic stall_in;
     logic [9:0] pixel_x;
     logic [9:0] pixel_y;
     logic pixel_valid;
@@ -16,6 +16,7 @@ interface generate_ray_intf
     // module outputs
     ray generated_ray;
     logic ray_valid;
+    logic stall_out;
 
     // probes to internal signals for testbench visibility
     logic [15:0] prng_offset_x;
@@ -26,13 +27,13 @@ interface generate_ray_intf
     clocking mcb @(posedge clk);
 
         output rst_n;
-        output stall;
         output pixel_x;
         output pixel_y;
         output pixel_valid;
 
         input generated_ray;
         input ray_valid;
+        input stall_out;
 
         input prng_offset_x;
         input prng_offset_y;
@@ -43,13 +44,14 @@ interface generate_ray_intf
     clocking pcb @(posedge clk);
 
         input rst_n;
-        input stall;
+        input stall_in;
         input pixel_x;
         input pixel_y;
         input pixel_valid;
 
         input generated_ray;
         input ray_valid;
+        input stall_out;
 
         input prng_offset_x;
         input prng_offset_y;

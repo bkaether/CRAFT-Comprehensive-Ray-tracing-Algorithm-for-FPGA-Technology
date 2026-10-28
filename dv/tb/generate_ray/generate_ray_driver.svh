@@ -15,7 +15,6 @@ class generate_ray_driver;
         @(vif.mcb);
 
         // set control inputs to known values (data inputs can be left unknown) and assert reset
-        vif.mcb.stall <= 1'b0;
         vif.mcb.pixel_valid <= 1'b0;
         vif.mcb.rst_n <= 1'b0;
 
@@ -36,24 +35,20 @@ class generate_ray_driver;
         vif.mcb.pixel_x <= trans.pixel_x;
         vif.mcb.pixel_y <= trans.pixel_y;
         vif.mcb.pixel_valid <= trans.pixel_valid;
-        vif.mcb.stall <= trans.stall;
 
-        // clocking event so flops in the DUT can sample the inputs
         @(vif.mcb);
+
+        while (trans.pixel_valid && vif.mcb.stall_out) begin
+            // hold data and valid until dut is ready, behaving as the upstream block would
+            @(vif.mcb);
+        end
 
     endtask
 
-    task drain();
-
-        // deassert stall so that pipeline can drain
-        vif.mcb.stall <= 1'b0;
-
-        // make sure no more pixels are valid during the drain time
+    task stop_trans();
         vif.mcb.pixel_valid <= 1'b0;
 
-        // wait for a few cycles to allow the pipeline to drain
-        repeat (10) @(vif.mcb);
-
+        @(vif.mcb);
     endtask
 
 endclass

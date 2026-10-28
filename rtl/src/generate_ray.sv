@@ -15,13 +15,14 @@ module generate_ray
 (
     input wire clk,
     input wire rst_n,
-    input wire stall,
+    input wire stall_in,
     input wire [9:0] pixel_x,   // [0, 799]
     input wire [9:0] pixel_y,   // [0, 599]
     input wire pixel_valid,
 
     output ray generated_ray,
-    output wire ray_valid
+    output wire ray_valid,
+    output wire stall_out
 );
 
     localparam [16:0] screen_to_camera_shift_x = 17'd77321;
@@ -37,7 +38,7 @@ module generate_ray
     ) prng_x (
         .clk(clk),
         .rst_n(rst_n),
-        .enable(~stall),
+        .enable(~stall_in),
 
         .rand_num(offset_x)
     );
@@ -48,7 +49,7 @@ module generate_ray
     ) prng_y (
         .clk(clk),
         .rst_n(rst_n),
-        .enable(~stall),
+        .enable(~stall_in),
 
         .rand_num(offset_y)
     );
@@ -87,7 +88,7 @@ module generate_ray
     pixel_sampler_mult_x pixel_sampler_mult_x_i (
         .CLK(clk),          // input wire CLK
         .A(rand_x),         // input wire [25 : 0] A
-        .CE(~stall),        // input wire CE
+        .CE(~stall_in),        // input wire CE
         .P(mult_result_x)   // output wire [33 : 0] P
     );
 
@@ -96,7 +97,7 @@ module generate_ray
     pixel_sampler_mult_y pixel_sampler_mult_y_i (
         .CLK(clk),          // input wire CLK
         .A(rand_y),         // input wire [25 : 0] A
-        .CE(~stall),        // input wire CE
+        .CE(~stall_in),        // input wire CE
         .P(mult_result_y)   // output wire [33 : 0] P
     );
 
@@ -113,12 +114,15 @@ module generate_ray
     assign generated_ray.dir.y = camera_space_y;
     assign generated_ray.dir.z = NEGATIVE_ONE_Q12_16; // ray points into the scene, which is in the negative z direction
 
+    // stall passthrough
+    assign stall_out = stall_in;
+
     /////////////////////////////////////////////////////////////////////////
     // valid signal pipeline
     /////////////////////////////////////////////////////////////////////////
     reg [3:0] ray_valid_pipe;
 
-    `FF_EN(clk, rst_n, 4'd0, ~stall, ray_valid_pipe, {ray_valid_pipe[2:0], pixel_valid})
+    `FF_EN(clk, rst_n, 4'd0, ~stall_in, ray_valid_pipe, {ray_valid_pipe[2:0], pixel_valid})
     assign ray_valid = ray_valid_pipe[3];
 
     // TODO: In the future, I should add a camera to world space transform here to 
@@ -133,11 +137,11 @@ module generate_ray
 
     property p_ray_held_during_stall;
         @(posedge clk) disable iff (!rst_n)
-        (ray_valid && stall) |=> (ray_valid && $stable(generated_ray));     // $stable() checks that its argument is the same as it was in the previous cycle
+        (ray_valid && stall_in) |=> (ray_valid && $stable(generated_ray));     // $stable() checks that its argument is the same as it was in the previous cycle
     endproperty
 
     a_ray_held_during_stall: assert property (p_ray_held_during_stall)
-        else $error("Ray output was not held stable during stall condition");
+        else $error("Ray output was not held stable during stall_in condition");
 
 `endif
     

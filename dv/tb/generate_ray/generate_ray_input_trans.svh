@@ -13,9 +13,4 @@ class generate_ray_input_trans;
         pixel_y < 600;
     }
 
-    constraint stall_c {
-        solve pixel_valid before stall;
-        (pixel_valid == 1'b1) -> (stall == 1'b0);
-    }
-
 endclass
