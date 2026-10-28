@@ -122,7 +122,7 @@ module generate_ray
     /////////////////////////////////////////////////////////////////////////
     reg [3:0] ray_valid_pipe;
 
-    `FF_EN(clk, rst, 4'd0, ~stall_in, ray_valid_pipe, {ray_valid_pipe[2:0], pixel_valid})
+    `FFLSR(ray_valid_pipe, {ray_valid_pipe[2:0], pixel_valid}, ~stall_in, '0, clk, rst)
     assign ray_valid = ray_valid_pipe[3];
 
     // TODO: In the future, I should add a camera to world space transform here to 

@@ -1,22 +1,20 @@
 `ifndef FF_MACROS_SVH
 `define FF_MACROS_SVH
 
-// D Flip Flop with active low reset
-`define FF(clk, rst, rst_val, Q, D) \
+// D flip flop with active high enable
+`define FFLNR(Q, D, load, clk) \
 always_ff @(posedge clk) begin \
-  if (rst) begin \
-    Q <= rst_val; \
-  end else begin \
+  if (load) begin \
     Q <= D; \
   end \
 end
 
-// D flip flop with active high enable and active low reset
-`define FF_EN(clk, rst, rst_val, en, Q, D) \
+// D flip flop with active high enable and synchronous active high reset
+`define FFLSR(Q, D, load, rst_val, clk, rst) \
 always_ff @(posedge clk) begin \
   if (rst) begin \
     Q <= rst_val; \
-  end else if (en) begin \
+  end else if (load) begin \
     Q <= D; \
   end \
 end

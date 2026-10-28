@@ -63,8 +63,8 @@ module path_tracer_top (
         .closest_hit_distance(nxt_closest_hit_distance)
     );
 
-    `FF_EN(sysclk, rst, 1'b0, 1'b1, hit_reg, nxt_hit)
-    `FF_EN(sysclk, rst, 1'b0, 1'b1, closest_hit_distance_reg, nxt_closest_hit_distance)
+    `FFLSR(hit_reg, nxt_hit, 1'b1, 1'b0, sysclk, rst)
+    `FFLSR(closest_hit_distance_reg, nxt_closest_hit_distance, 1'b1, 1'b0, sysclk, rst)
 
     assign hit_out = hit_reg;
     assign test_data = closest_hit_distance_reg;

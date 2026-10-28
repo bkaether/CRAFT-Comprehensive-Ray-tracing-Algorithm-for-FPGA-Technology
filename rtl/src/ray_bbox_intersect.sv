@@ -36,9 +36,9 @@ module ray_bbox_intersect
     reg [2:0] outside_bounds_buf1;
     reg [2:0] outside_bounds_buf2;
     reg [2:0] outside_bounds_buf3;
-    `FF_EN(clk, rst, '0, ~stall, outside_bounds_buf1, outside_bounds)
-    `FF_EN(clk, rst, '0, ~stall, outside_bounds_buf2, outside_bounds_buf1)
-    `FF_EN(clk, rst, '0, ~stall, outside_bounds_buf3, outside_bounds_buf2)
+    `FFLSR(outside_bounds_buf1, outside_bounds, ~stall, '0, clk, rst)
+    `FFLSR(outside_bounds_buf2, outside_bounds_buf1, ~stall, '0, clk, rst)
+    `FFLSR(outside_bounds_buf3, outside_bounds_buf2, ~stall, '0, clk, rst)
 
     // swap min and max signal based on the ray direction
     wire [2:0] swap;
@@ -50,13 +50,13 @@ module ray_bbox_intersect
     reg [2:0] div_by_zero_buf1;
     reg [2:0] div_by_zero_buf2;
     reg [2:0] div_by_zero_buf3;
-    `FF_EN(clk, rst, '0, ~stall, div_by_zero_buf1, div_by_zero)
-    `FF_EN(clk, rst, '0, ~stall, div_by_zero_buf2, div_by_zero_buf1)
-    `FF_EN(clk, rst, '0, ~stall, div_by_zero_buf3, div_by_zero_buf2)
+    `FFLSR(div_by_zero_buf1, div_by_zero, ~stall, '0, clk, rst)
+    `FFLSR(div_by_zero_buf2, div_by_zero_buf1, ~stall, '0, clk, rst)
+    `FFLSR(div_by_zero_buf3, div_by_zero_buf2, ~stall, '0, clk, rst)
 
     // buffer for swap signal to use after the 1 cycle latency multiplications
     reg [2:0] swap_buf;
-    `FF_EN(clk, rst, '0, ~stall, swap_buf, swap)
+    `FFLSR(swap_buf, swap, ~stall, '0, clk, rst)
 
     // x axis
     ray_bbox_mult mult_i_0 (
@@ -129,12 +129,12 @@ module ray_bbox_intersect
     // flops to break up combinational logic
     reg signed [48:0] tmin_x_reg, tmax_x_reg, tmin_y_reg, tmax_y_reg, tmin_z_reg, tmax_z_reg; 
 
-    `FF_EN(clk, rst, '0, ~stall, tmin_x_reg, tmin_x)
-    `FF_EN(clk, rst, '0, ~stall, tmax_x_reg, tmax_x)
-    `FF_EN(clk, rst, '0, ~stall, tmin_y_reg, tmin_y)
-    `FF_EN(clk, rst, '0, ~stall, tmax_y_reg, tmax_y)
-    `FF_EN(clk, rst, '0, ~stall, tmin_z_reg, tmin_z)
-    `FF_EN(clk, rst, '0, ~stall, tmax_z_reg, tmax_z)
+    `FFLSR(tmin_x_reg, tmin_x, ~stall, '0, clk, rst)
+    `FFLSR(tmax_x_reg, tmax_x, ~stall, '0, clk, rst)
+    `FFLSR(tmin_y_reg, tmin_y, ~stall, '0, clk, rst)
+    `FFLSR(tmax_y_reg, tmax_y, ~stall, '0, clk, rst)
+    `FFLSR(tmin_z_reg, tmin_z, ~stall, '0, clk, rst)
+    `FFLSR(tmax_z_reg, tmax_z, ~stall, '0, clk, rst)
     
     wire signed [48:0] time_upper_bound;
     wire signed [48:0] time_lower_bound;
@@ -144,8 +144,8 @@ module ray_bbox_intersect
     reg signed [48:0] time_upper_bound_buf;
     reg signed [48:0] time_lower_bound_buf;
 
-    `FF_EN(clk, rst, '0, ~stall, time_upper_bound_buf, time_upper_bound)
-    `FF_EN(clk, rst, '0, ~stall, time_lower_bound_buf, time_lower_bound)
+    `FFLSR(time_upper_bound_buf, time_upper_bound, ~stall, '0, clk, rst)
+    `FFLSR(time_lower_bound_buf, time_lower_bound, ~stall, '0, clk, rst)
 
     assign hit = ~((time_lower_bound_buf > time_upper_bound_buf) | 
                    (div_by_zero_buf3[0] & outside_bounds_buf3[0]) |

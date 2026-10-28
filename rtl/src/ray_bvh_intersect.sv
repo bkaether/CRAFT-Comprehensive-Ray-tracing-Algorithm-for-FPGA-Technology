@@ -57,7 +57,7 @@ module ray_bvh_intersect
     wire [5:0] nxt_state;
     
     // state FF
-    `FF(clk, rst, DONE_STATE, state, nxt_state)
+    `FFLSR(state, nxt_state, 1'b1, DONE_STATE, clk, rst)
 
     assign nxt_state = (state === DONE_STATE) ? ROOT_NODE_STATE :
 

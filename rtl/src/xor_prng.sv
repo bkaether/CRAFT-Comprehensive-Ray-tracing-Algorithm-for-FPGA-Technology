@@ -23,7 +23,7 @@ module xor_prng #(
     assign nxt_state = temp2 ^ (temp2 >> 8);
 
     // state FF
-    `FF_EN(clk, rst, SEED, enable, state, nxt_state)
+    `FFLSR (state, nxt_state, enable, SEED, clk, rst)
 
     // get the 12 MSBs of the 16 bit PRNG
     assign rand_num = state;
