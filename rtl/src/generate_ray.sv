@@ -14,10 +14,13 @@ until accepted by downstream block (stall_in released). Similarly, a new pixel w
 while stall_out is asserted. It is the job of the upstream block to hold its pixel during a stall. stall_out is just a passthrough
 of stall_in.
 
+This module matches the software model, which uses y=0 as the bottom row of the image, which is likely the opposite
+of the hardware frame buffer, so the frame buffer should write to addresses PIXEL_MAX - pixel_y for a proper image
+
 */
 module generate_ray 
     import data_structs_pkg::*;
-#(parameter MULT_STAGES = 1)
+#(parameter int MULT_STAGES = 1)
 (
     input wire clk,
     input wire rst,
@@ -31,8 +34,8 @@ module generate_ray
     output wire stall_out
 );
 
-    localparam [16:0] screen_to_camera_shift_x = 17'd61185;
-    localparam [15:0] screen_to_camera_shift_y = 16'd45889;
+    localparam logic signed [18:0] screen_to_camera_shift_x = 19'sd61185;
+    localparam logic signed [18:0] screen_to_camera_shift_y = 19'sd45889;
 
     // prng signals
     wire [15:0] offset_x;   // [0, 1)
@@ -96,10 +99,14 @@ module generate_ray
     assign mult_result_x = rand_x * SCALING_CONST;
     assign mult_result_y = rand_y * SCALING_CONST;
     
-    // need to right shift the mult result back by 16 bits (because of the 2^16 multiplied by earleir to get 153)
-    // for proper fixed point interpretation before subtracting the camera shift
-    wire signed [18:0] camera_space_x = mult_result_x[33:16] - screen_to_camera_shift_x;  // Sign bit + Q2.16 (keep 16 fractional bits and trim unused integer bits)
-    wire signed [18:0] camera_space_y = mult_result_y[33:16] - screen_to_camera_shift_y;  // Sign bit + Q2.16 (keep 16 fractional bits and trim unused integer bits)
+    // need to right shift the mult result back by 16 bits (because of the 2^16 multiplied by earleir to get 153) for proper fixed point
+    // interpretation before subtracting the camera shift. This means Q18.16 -> Q 2.32. We only want 16 bits of fractional precision so
+    // we can just take the upper 18 bits, then add an extra bit for the signed bit
+    wire signed [18:0] signed_mult_result_x = $signed({1'b0, mult_result_x[33:16]});
+    wire signed [18:0] signed_mult_result_y = $signed({1'b0, mult_result_y[33:16]});
+
+    wire signed [18:0] camera_space_x = signed_mult_result_x - screen_to_camera_shift_x;  // Sign bit + Q2.16 (keep 16 fractional bits and trim unused integer bits)
+    wire signed [18:0] camera_space_y = signed_mult_result_y - screen_to_camera_shift_y;  // Sign bit + Q2.16 (keep 16 fractional bits and trim unused integer bits)
 
     // Elaboration-time guard: a depth of 0 would leave no registers at all
     if (MULT_STAGES < 1) begin : g_check_mult_stages
