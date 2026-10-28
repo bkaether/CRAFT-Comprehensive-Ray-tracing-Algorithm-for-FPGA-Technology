@@ -25,8 +25,8 @@ module generate_ray
     output wire stall_out
 );
 
-    localparam [16:0] screen_to_camera_shift_x = 17'd77321;
-    localparam [15:0] screen_to_camera_shift_y = 16'd57991;
+    localparam [16:0] screen_to_camera_shift_x = 17'd61185;
+    localparam [15:0] screen_to_camera_shift_y = 16'd45889;
 
     // prng signals
     wire [15:0] offset_x;   // [0, 1)
@@ -63,7 +63,7 @@ module generate_ray
 
     // CONSTANTS TO MULTIPLY PIXEL SCREEN COORDINATES BY
 
-    // Vertical FOV = 83 degrees
+    // Vertical FOV = 70 degrees
     // Aspect Ratio = 4:3
     // Resolution = 800 x 600
 
@@ -83,7 +83,7 @@ module generate_ray
 
     // We then convert to fixed point with 16 fractional bits by left shifting by 16 bits (multiplying by 2^16)
 
-    // constant coefficient multiplier with 193 (fixed point representation of screen space to
+    // constant coefficient multiplier with 153 (fixed point representation of screen space to
     // camera space scale constant with 16 fractional bits)
     pixel_sampler_mult_x pixel_sampler_mult_x_i (
         .CLK(clk),          // input wire CLK
@@ -92,7 +92,7 @@ module generate_ray
         .P(mult_result_x)   // output wire [33 : 0] P
     );
 
-    // constant coefficient multiplier with 193 (fixed point representation of screen space to
+    // constant coefficient multiplier with 153 (fixed point representation of screen space to
     // camera space scale constant with 16 fractional bits)
     pixel_sampler_mult_y pixel_sampler_mult_y_i (
         .CLK(clk),          // input wire CLK

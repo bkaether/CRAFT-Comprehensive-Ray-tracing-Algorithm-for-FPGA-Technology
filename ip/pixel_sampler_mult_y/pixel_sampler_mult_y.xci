@@ -14,7 +14,7 @@
         "PortAWidth": [ { "value": "26", "value_src": "user", "resolve_type": "user", "format": "long", "usage": "all" } ],
         "PortBType": [ { "value": "Signed", "resolve_type": "user", "enabled": false, "usage": "all" } ],
         "PortBWidth": [ { "value": "18", "resolve_type": "user", "format": "long", "enabled": false, "usage": "all" } ],
-        "ConstValue": [ { "value": "193", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
+        "ConstValue": [ { "value": "153", "value_src": "user", "resolve_type": "user", "usage": "all" } ],
         "CcmImp": [ { "value": "Distributed_Memory", "resolve_type": "user", "usage": "all" } ],
         "Multiplier_Construction": [ { "value": "Use_LUTs", "resolve_type": "user", "enabled": false, "usage": "all" } ],
         "OptGoal": [ { "value": "Speed", "resolve_type": "user", "usage": "all" } ],
@@ -46,7 +46,7 @@
         "C_MULT_TYPE": [ { "value": "2", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_CE_OVERRIDES_SCLR": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_CCM_IMP": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
-        "C_B_VALUE": [ { "value": "11000001", "resolve_type": "generated", "usage": "all" } ],
+        "C_B_VALUE": [ { "value": "10011001", "resolve_type": "generated", "usage": "all" } ],
         "C_HAS_ZERO_DETECT": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_ROUND_OUTPUT": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ],
         "C_ROUND_PT": [ { "value": "0", "resolve_type": "generated", "format": "long", "usage": "all" } ]

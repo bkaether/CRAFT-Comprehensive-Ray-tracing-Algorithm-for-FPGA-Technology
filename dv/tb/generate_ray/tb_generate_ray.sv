@@ -8,8 +8,8 @@ module tb_generate_ray();
     // top level testbench knobs
     localparam int PIXEL_WIDTH = 800;
     localparam int PIXEL_HEIGHT = 600;
-    localparam real FOV_DEGREES = 83;
-    localparam real ERROR_THRESHOLD = 0.01;
+    localparam real FOV_DEGREES = 70.0;
+    localparam real ERROR_THRESHOLD = 0.001;
 
     // mailboxes for communication between testbench components
     input_mbx_t input_mbx;
