@@ -39,7 +39,7 @@ module tb_generate_ray();
 
     generate_ray u_generate_ray (
         .clk(clk),
-        .rst_n(u_generate_ray_intf.rst_n),
+        .rst(u_generate_ray_intf.rst),
         .stall_in(u_backpressure_intf.stall),
         .pixel_x(u_generate_ray_intf.pixel_x),
         .pixel_y(u_generate_ray_intf.pixel_y),

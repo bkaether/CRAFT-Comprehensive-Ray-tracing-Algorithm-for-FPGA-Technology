@@ -5,7 +5,7 @@
 module ray_bbox_intersect_tb();
 
     reg clk;
-    reg rst_n;
+    reg rst;
     reg stall;
     vec3 ray_orig;
     vec3_18_18 inv_ray_dir;
@@ -19,7 +19,7 @@ module ray_bbox_intersect_tb();
 
     ray_bbox_intersect DUT (
         .clk(clk),
-        .rst_n(rst_n),
+        .rst(rst),
         .stall(stall),
         .ray_orig(ray_orig),
         .inv_ray_dir(inv_ray_dir),
@@ -65,10 +65,10 @@ module ray_bbox_intersect_tb();
 
     initial begin
         clk <= 1;
-        rst_n <= 0;
+        rst <= 1;
         stall <= 1;
         #16
-        rst_n <= 1;
+        rst <= 0;
         #16
         stall <= 0;
         ray_orig <= vec3_default;

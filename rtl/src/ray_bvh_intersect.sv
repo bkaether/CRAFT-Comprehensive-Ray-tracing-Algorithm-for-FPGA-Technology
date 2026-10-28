@@ -6,7 +6,7 @@ module ray_bvh_intersect
     import data_structs_pkg::*;
 (
     input wire clk,
-    input wire rst_n,
+    input wire rst,
     input vec3 ray_orig,
     input vec3_18_18 inv_ray_dir,
     input wire [2:0] div_by_zero,
@@ -57,7 +57,7 @@ module ray_bvh_intersect
     wire [5:0] nxt_state;
     
     // state FF
-    `FF(clk, rst_n, DONE_STATE, state, nxt_state)
+    `FF(clk, rst, DONE_STATE, state, nxt_state)
 
     assign nxt_state = (state === DONE_STATE) ? ROOT_NODE_STATE :
 
@@ -65,7 +65,7 @@ module ray_bvh_intersect
     // check the closer box first
     ray_bbox_intersect left_node_intersect_i (
         .clk(),
-        .rst_n(),
+        .rst(),
         .stall(),
         .ray_orig(),
         .inv_ray_dir(),
@@ -78,7 +78,7 @@ module ray_bvh_intersect
 
     ray_bbox_intersect right_node_intersect_i (
         .clk(),
-        .rst_n(),
+        .rst(),
         .stall(),
         .ray_orig(),
         .inv_ray_dir(),

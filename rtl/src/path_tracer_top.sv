@@ -4,7 +4,7 @@
 
 module path_tracer_top (
     input wire sysclk,
-    // input wire rst_n,
+    // input wire rst,
     // input wire start,
     input wire [9:0] pixel_x,   // [0, 799]
     input wire [9:0] pixel_y,   // [0, 599]
@@ -13,14 +13,14 @@ module path_tracer_top (
     output wire [48:0] test_data
 );
 
-    wire rst_n = 1'b1;
+    wire rst = 1'b0;
 
     ray generated_ray;
 
     // ray generation unit
     generate_ray ray_gen_i (
         .clk(sysclk),
-        .rst_n(rst_n),
+        .rst(rst),
         .stall(1'b0),
         .pixel_x(pixel_x),
         .pixel_y(pixel_y),
@@ -53,7 +53,7 @@ module path_tracer_top (
 
     ray_bbox_intersect ray_box_intersect_i (
         .clk(sysclk),
-        .rst_n(rst_n),
+        .rst(rst),
         .stall(1'b0),
         .ray_orig(generated_ray.orig),
         .inv_ray_dir(inv_ray_dir),
@@ -63,8 +63,8 @@ module path_tracer_top (
         .closest_hit_distance(nxt_closest_hit_distance)
     );
 
-    `FF_EN(sysclk, rst_n, 1'b0, 1'b1, hit_reg, nxt_hit)
-    `FF_EN(sysclk, rst_n, 1'b0, 1'b1, closest_hit_distance_reg, nxt_closest_hit_distance)
+    `FF_EN(sysclk, rst, 1'b0, 1'b1, hit_reg, nxt_hit)
+    `FF_EN(sysclk, rst, 1'b0, 1'b1, closest_hit_distance_reg, nxt_closest_hit_distance)
 
     assign hit_out = hit_reg;
     assign test_data = closest_hit_distance_reg;

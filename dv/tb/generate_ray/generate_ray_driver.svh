@@ -16,13 +16,13 @@ class generate_ray_driver;
 
         // set control inputs to known values (data inputs can be left unknown) and assert reset
         vif.mcb.pixel_valid <= 1'b0;
-        vif.mcb.rst_n <= 1'b0;
+        vif.mcb.rst <= 1'b1;
 
         // hold reset for two cycles
         repeat (2) @(vif.mcb);
 
         // deassert reset
-        vif.mcb.rst_n <= 1'b1;
+        vif.mcb.rst <= 1'b0;
 
         // end on a clocking edge so that the next transaction can be driven with proper timing
         @(vif.mcb);

@@ -24,7 +24,7 @@ class generate_ray_monitor;
 
             // include reset condition here because a reset in the same cycle as a valid pixel would not make it through the pipeline,
             // and no matching output would be sampled
-            if (vif.pcb.pixel_valid && !vif.pcb.stall_out && vif.pcb.rst_n) begin
+            if (vif.pcb.pixel_valid && !vif.pcb.stall_out && !vif.pcb.rst) begin
                 generate_ray_observed_input observed_input;
 
                 // sample valid input

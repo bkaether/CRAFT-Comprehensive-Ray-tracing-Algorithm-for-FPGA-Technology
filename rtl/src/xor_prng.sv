@@ -7,7 +7,7 @@ module xor_prng #(
     parameter SEED = 16'h1ACE
 ) (
     input wire clk,
-    input wire rst_n,
+    input wire rst,
     input wire enable,
 
     output wire [15:0] rand_num
@@ -23,7 +23,7 @@ module xor_prng #(
     assign nxt_state = temp2 ^ (temp2 >> 8);
 
     // state FF
-    `FF_EN(clk, rst_n, SEED, enable, state, nxt_state)
+    `FF_EN(clk, rst, SEED, enable, state, nxt_state)
 
     // get the 12 MSBs of the 16 bit PRNG
     assign rand_num = state;

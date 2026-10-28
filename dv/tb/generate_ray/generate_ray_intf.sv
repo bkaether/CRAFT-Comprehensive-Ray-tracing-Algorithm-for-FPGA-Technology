@@ -7,7 +7,7 @@ interface generate_ray_intf
 );
 
     // module inputs
-    logic rst_n;
+    logic rst;
     logic stall_in;
     logic [9:0] pixel_x;
     logic [9:0] pixel_y;
@@ -26,7 +26,7 @@ interface generate_ray_intf
     // samples DUT outputs just before it.
     clocking mcb @(posedge clk);
 
-        output rst_n;
+        output rst;
         output pixel_x;
         output pixel_y;
         output pixel_valid;
@@ -43,7 +43,7 @@ interface generate_ray_intf
     // Passive view: samples everything, drives nothing.
     clocking pcb @(posedge clk);
 
-        input rst_n;
+        input rst;
         input stall_in;
         input pixel_x;
         input pixel_y;

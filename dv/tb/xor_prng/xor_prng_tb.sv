@@ -5,7 +5,7 @@ module xor_prng_tb();
     parameter CYCLES = 100000;
 
     reg clk;
-    reg rst_n;
+    reg rst;
     reg enable;
 
     wire [15:0] rand_num;
@@ -21,7 +21,7 @@ module xor_prng_tb();
 //        .SEED(16'hC0DE)
     ) DUT (
         .clk(clk),
-        .rst_n(rst_n),
+        .rst(rst),
         .enable(enable),
 
         .rand_num(rand_num)
@@ -29,11 +29,11 @@ module xor_prng_tb();
 
     initial begin
         clk <= 0;
-        rst_n <= 0;
+        rst <= 1;
         sum <= 0;
         enable <= 1;
         #16
-        rst_n <= 1;
+        rst <= 0;
 
         for (i = 0; i < CYCLES; i++) begin
             @(posedge clk);

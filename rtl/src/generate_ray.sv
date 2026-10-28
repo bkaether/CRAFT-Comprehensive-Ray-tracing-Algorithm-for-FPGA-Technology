@@ -14,7 +14,7 @@ module generate_ray
     import data_structs_pkg::*;
 (
     input wire clk,
-    input wire rst_n,
+    input wire rst,
     input wire stall_in,
     input wire [9:0] pixel_x,   // [0, 799]
     input wire [9:0] pixel_y,   // [0, 599]
@@ -37,7 +37,7 @@ module generate_ray
         .SEED(16'h1ACE)
     ) prng_x (
         .clk(clk),
-        .rst_n(rst_n),
+        .rst(rst),
         .enable(~stall_in),
 
         .rand_num(offset_x)
@@ -48,7 +48,7 @@ module generate_ray
         .SEED(16'hC0DE)
     ) prng_y (
         .clk(clk),
-        .rst_n(rst_n),
+        .rst(rst),
         .enable(~stall_in),
 
         .rand_num(offset_y)
@@ -122,7 +122,7 @@ module generate_ray
     /////////////////////////////////////////////////////////////////////////
     reg [3:0] ray_valid_pipe;
 
-    `FF_EN(clk, rst_n, 4'd0, ~stall_in, ray_valid_pipe, {ray_valid_pipe[2:0], pixel_valid})
+    `FF_EN(clk, rst, 4'd0, ~stall_in, ray_valid_pipe, {ray_valid_pipe[2:0], pixel_valid})
     assign ray_valid = ray_valid_pipe[3];
 
     // TODO: In the future, I should add a camera to world space transform here to 
@@ -136,7 +136,7 @@ module generate_ray
 `ifndef SYNTHESIS
 
     property p_ray_held_during_stall;
-        @(posedge clk) disable iff (!rst_n)
+        @(posedge clk) disable iff (rst)
         (ray_valid && stall_in) |=> (ray_valid && $stable(generated_ray));     // $stable() checks that its argument is the same as it was in the previous cycle
     endproperty
 
