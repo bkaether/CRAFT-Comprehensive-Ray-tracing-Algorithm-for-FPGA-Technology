@@ -122,9 +122,10 @@ module generate_ray
     `FFLNR(camera_space_y_q, camera_space_y_d, ~ds_stall_i, clk)
     `FFLSR(ds_vld_q, us_vld_i, ~ds_stall_i, '0, clk, rst)
 
-    // we now need to normalize the ray directions. With our chosen FOV (70) and aspect ratio (4/3), the full range of the normalization function
-    // 1 / (x^2 + y^2 + 1) is [1, 2.362), which means we are in a good position to use a look up table with linear interpolation to get good
-    // accuracy with reasonable hardware cost. See generate_ray_norm.sv for more info
+    // we now need to normalize the ray directions. With our chosen FOV (70) and aspect ratio (4/3), the input to the normalization function is
+    // s = x² + y² + 1, with realistic range [1, 2.362) and supported range [1, 4), and the LUT computes 1/√s with realistic range [0.651, 1],
+    // which means we are in a good position to use a look up table with linear interpolation to get good accuracy with reasonable hardware cost.
+    // See generate_ray_norm.sv for more info
 
     // set output ray origin
     // by default camera position is the origin
