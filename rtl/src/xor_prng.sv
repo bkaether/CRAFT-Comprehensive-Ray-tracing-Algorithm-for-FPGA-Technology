@@ -8,25 +8,24 @@ module xor_prng #(
 ) (
     input wire clk,
     input wire rst,
-    input wire enable,
+    input wire en_i,
 
-    output wire [15:0] rand_num
+    output wire [15:0] rand_num_o
 );
 
     // register for holding the current state/initial output
-    reg  [15:0] state;
-    wire [15:0] nxt_state;
+    reg  [15:0] state_q;
+    wire [15:0] state_d;
 
     // xorshift algorithm
-    wire [15:0] temp = state ^ (state >> 7);
+    wire [15:0] temp = state_q ^ (state_q >> 7);
     wire [15:0] temp2 = temp ^ (temp << 9);
-    assign nxt_state = temp2 ^ (temp2 >> 8);
+    assign state_d = temp2 ^ (temp2 >> 8);
 
     // state FF
-    `FFLSR (state, nxt_state, enable, SEED, clk, rst)
+    `FFLSR (state_q, state_d, en_i, SEED, clk, rst)
 
-    // get the 12 MSBs of the 16 bit PRNG
-    assign rand_num = state;
+    assign rand_num_o = state_q;
 
     
 endmodule

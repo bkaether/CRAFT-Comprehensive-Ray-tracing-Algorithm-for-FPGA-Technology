@@ -6,37 +6,44 @@ interface generate_ray_intf
     input logic clk
 );
 
-    // module inputs
-    logic rst;
-    logic stall_in;
-    logic [9:0] pixel_x;
-    logic [9:0] pixel_y;
-    logic pixel_valid;
+    // Signal names mirror the generate_ray port names exactly, so the
+    // TB module connections can be checked by eye. The _i / _o suffixes
+    // are from the DUT's point of view, not the testbench's: the driver
+    // drives *_i signals (DUT inputs) and samples *_o signals (DUT outputs),
+    // so clocking block directions appear reversed relative to the suffixes.
 
-    // module outputs
-    ray generated_ray;
-    logic ray_valid;
-    logic stall_out;
+    logic rst;
+
+    // upstream interface
+    // data
+    logic [9:0] us_pixel_x_i;
+    logic [9:0] us_pixel_y_i;
+    // control
+    logic us_vld_i;
+    logic us_stall_o;
+
+    // downstream interface
+    // data
+    ray ds_ray_o;
+    // control
+    logic ds_vld_o;
+    logic ds_stall_i;
 
     // probes to internal signals for testbench visibility
     logic [15:0] prng_offset_x;
     logic [15:0] prng_offset_y;
 
-    // Driver view: drives DUT inputs just after the edge,
-    // samples DUT outputs just before it.
+    // Driver view: drives DUT inputs just after the edge, samples DUT outputs just before it.
     clocking mcb @(posedge clk);
 
         output rst;
-        output pixel_x;
-        output pixel_y;
-        output pixel_valid;
+        output us_pixel_x_i;
+        output us_pixel_y_i;
+        output us_vld_i;
 
-        input generated_ray;
-        input ray_valid;
-        input stall_out;
-
-        input prng_offset_x;
-        input prng_offset_y;
+        input ds_ray_o;
+        input ds_vld_o;
+        input us_stall_o;
 
     endclocking
 
@@ -44,14 +51,14 @@ interface generate_ray_intf
     clocking pcb @(posedge clk);
 
         input rst;
-        input stall_in;
-        input pixel_x;
-        input pixel_y;
-        input pixel_valid;
+        input ds_stall_i;
+        input us_pixel_x_i;
+        input us_pixel_y_i;
+        input us_vld_i;
 
-        input generated_ray;
-        input ray_valid;
-        input stall_out;
+        input ds_ray_o;
+        input ds_vld_o;
+        input us_stall_o;
 
         input prng_offset_x;
         input prng_offset_y;

@@ -15,7 +15,7 @@ class generate_ray_driver;
         @(vif.mcb);
 
         // set control inputs to known values (data inputs can be left unknown) and assert reset
-        vif.mcb.pixel_valid <= 1'b0;
+        vif.mcb.us_vld_i <= 1'b0;
         vif.mcb.rst <= 1'b1;
 
         // hold reset for two cycles
@@ -32,21 +32,21 @@ class generate_ray_driver;
     task drive_trans(generate_ray_input_trans trans);
     
         // set DUT inputs to values from the transaction object
-        vif.mcb.pixel_x <= trans.pixel_x;
-        vif.mcb.pixel_y <= trans.pixel_y;
-        vif.mcb.pixel_valid <= trans.pixel_valid;
+        vif.mcb.us_pixel_x_i <= trans.pixel_x;
+        vif.mcb.us_pixel_y_i <= trans.pixel_y;
+        vif.mcb.us_vld_i <= trans.vld;
 
         @(vif.mcb);
 
-        while (trans.pixel_valid && vif.mcb.stall_out) begin
-            // hold data and valid until dut is ready, behaving as the upstream block would
+        while (trans.vld && vif.mcb.us_stall_o) begin
+            // hold data and vld until dut stall is released, behaving as the upstream block would
             @(vif.mcb);
         end
 
     endtask
 
     task stop_trans();
-        vif.mcb.pixel_valid <= 1'b0;
+        vif.mcb.us_vld_i <= 1'b0;
 
         @(vif.mcb);
     endtask

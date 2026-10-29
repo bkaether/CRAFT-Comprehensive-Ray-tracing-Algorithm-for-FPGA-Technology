@@ -40,14 +40,21 @@ module tb_generate_ray();
     generate_ray u_generate_ray (
         .clk(clk),
         .rst(u_generate_ray_intf.rst),
-        .stall_in(u_backpressure_intf.stall),
-        .pixel_x(u_generate_ray_intf.pixel_x),
-        .pixel_y(u_generate_ray_intf.pixel_y),
-        .pixel_valid(u_generate_ray_intf.pixel_valid),
 
-        .generated_ray(u_generate_ray_intf.generated_ray),
-        .ray_valid(u_generate_ray_intf.ray_valid),
-        .stall_out(u_generate_ray_intf.stall_out)
+        // upstream interface
+        // data
+        .us_pixel_x_i(u_generate_ray_intf.us_pixel_x_i),
+        .us_pixel_y_i(u_generate_ray_intf.us_pixel_y_i),
+        // control
+        .us_vld_i(u_generate_ray_intf.us_vld_i),
+        .us_stall_o(u_generate_ray_intf.us_stall_o),
+
+        // downstream interface
+        // data
+        .ds_ray_o(u_generate_ray_intf.ds_ray_o),
+        // control
+        .ds_vld_o(u_generate_ray_intf.ds_vld_o),
+        .ds_stall_i(u_backpressure_intf.stall)
     );
 
     // connect internal prng interface probes
@@ -55,7 +62,7 @@ module tb_generate_ray();
     assign u_generate_ray_intf.prng_offset_y = u_generate_ray.offset_y;
 
     // connect gen ray stall in
-    assign u_generate_ray_intf.stall_in = u_backpressure_intf.stall;
+    assign u_generate_ray_intf.ds_stall_i = u_backpressure_intf.stall;
 
     task automatic build();
         // mailboxes must be built before the monitor and scoreboard are constructed, so they can be passed in as constructor arguments
@@ -76,16 +83,16 @@ module tb_generate_ray();
 
         while (n < num_valid_pixels) begin
 
-            // only send transactions with pixel_valid = 1 if specified
-            if (!trans.randomize() with { send_valid_pixels_only -> trans.pixel_valid == 1'b1; }) begin
+            // only send transactions with vld = 1 if specified
+            if (!trans.randomize() with { send_valid_pixels_only -> trans.vld == 1'b1; }) begin
                 $fatal(1, "Failed to randomize input transaction");
             end
 
             // apply input transaction to DUT
             drv.drive_trans(trans);
 
-            // only count transactions with pixel_valid = 1 towards the total number of transactions
-            if (trans.pixel_valid) begin
+            // only count transactions with vld = 1 towards the total number of transactions
+            if (trans.vld) begin
                 n++;
             end
         end
@@ -97,7 +104,7 @@ module tb_generate_ray();
         // turn off backpressure
         backpressure_drv.mode = NONE;
 
-        // make sure pixel_valid is deasserted
+        // make sure us_vld_i is deasserted
         drv.stop_trans();
 
         // wait for a few cycles to allow for lingering stalls to deassert and the pipeline to drain
