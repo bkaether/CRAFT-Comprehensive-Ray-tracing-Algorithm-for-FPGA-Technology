@@ -6,8 +6,8 @@
 This module outputs a ray from the scene camera at (0, 0, 0) to a randomly sampled point
 within the given pixel x and y values
 
-THE LATENCY OF THIS MODULE IS X CYCLES TODO: document proper latency after norm module is done
-ds_ray_o appears at output X cycles after pixels indices arrive at input.
+THE LATENCY OF THIS MODULE IS HASH_ROUNDS+1 CYCLES TODO: document proper latency after norm module is done
+ds_ray_o appears at output HASH_ROUNDS+1 cycles after pixels indices arrive at input.
 
 Communicates via a valid/ready handshake (~ds_stall_i and ~us_stall_o act as ready) with adjacent blocks. A valid ray output will hold 
 until accepted by downstream block (ds_stall_i released). Similarly, a new pixel will not be accepted into the generate_ray pipeline
@@ -26,11 +26,12 @@ module generate_ray
 
     // upstream interface
     // data
-    input  wire [9:0] us_pixel_x_i,   // [0, 799]
-    input  wire [9:0] us_pixel_y_i,   // [0, 599]
+    input  wire [9:0]  us_pixel_x_i,          // [0, 799]
+    input  wire [9:0]  us_pixel_y_i,          // [0, 599]
+    input  wire [11:0] us_pixel_sample_idx_i, // [0, 4095]
     // control
-    input  wire       us_vld_i,
-    output wire       us_stall_o,
+    input  wire        us_vld_i,
+    output wire        us_stall_o,
 
     // downstream interface
     // data
@@ -40,35 +41,44 @@ module generate_ray
     input  wire ds_stall_i
 );
 
-    // prng signals
-    wire [15:0] offset_x;   // [0, 1)
-    wire [15:0] offset_y;   // [0, 1)
+    // tea hash offset signals
+    // full hash outputs from the instantiations
+    wire [31:0] offset_x_full;
+    wire [31:0] offset_y_full;
 
-    // prng for x offset
-    xor_prng #(
-        .SEED(16'h1ACE)
-    ) u_prng_x (
+    wire        hash_vld;
+
+    // delayed pixel outputs from the hash pipeline
+    wire [9:0] pixel_x;
+    wire [9:0] pixel_y;
+
+    // one tea hash module for both x and y offsets
+    tea_hash #(
+        .ROUNDS(HASH_ROUNDS),
+        .SALT(PIXEL_SAMPLE_SALT),
+        .USER_WIDTH(20)    // width of both us_pixel_x_i and us_pixel_y_i together
+    ) u_tea_hash (
         .clk(clk),
         .rst(rst),
-        .en_i(~ds_stall_i && us_vld_i), // only advance prng when we need a new value
 
-        .rand_num_o(offset_x)
+        .key_i({us_pixel_x_i, us_pixel_y_i, us_pixel_sample_idx_i}),
+        .user_i({us_pixel_x_i, us_pixel_y_i}),
+        .vld_i(us_vld_i),
+        .stall_i(ds_stall_i),
+
+        .r0_o(offset_x_full),
+        .r1_o(offset_y_full),
+        .user_o({pixel_x, pixel_y}),
+        .vld_o(hash_vld)
     );
 
-    // prng for y offset
-    xor_prng #(
-        .SEED(16'hC0DE)
-    ) u_prng_y (
-        .clk(clk),
-        .rst(rst),
-        .en_i(~ds_stall_i && us_vld_i), // only advance prng when we need a new value
-
-        .rand_num_o(offset_y)
-    );
+    // trimmed for a 16 bit fractional offset
+    wire [15:0] offset_x = offset_x_full[31:16];  // [0, 1)
+    wire [15:0] offset_y = offset_y_full[31:16];  // [0, 1)
 
     // random, not normalized pixel sample locations
-    wire [25:0] rand_x = {us_pixel_x_i, offset_x};   // [0, 800), Q10.16
-    wire [25:0] rand_y = {us_pixel_y_i, offset_y};   // [0, 600), Q10.16
+    wire [25:0] rand_x = {pixel_x, offset_x};   // [0, 800), Q10.16
+    wire [25:0] rand_y = {pixel_y, offset_y};   // [0, 600), Q10.16
 
     // CONSTANTS TO MULTIPLY PIXEL SCREEN COORDINATES BY
 
@@ -76,8 +86,8 @@ module generate_ray
     // Aspect Ratio = 4:3
     // Resolution = 800 x 600
 
-    // camera_space_x = ((us_pixel_x_i + random_offset_x) / screen_width) * sensor_plane_width - (sensor_plane_width / 2)
-    // camera_space_y = ((us_pixel_y_i + random_offset_y) / screen_height) * sensor_plane_height - (sensor_plane_height / 2)
+    // camera_space_x = ((pixel_x + random_offset_x) / screen_width) * sensor_plane_width - (sensor_plane_width / 2)
+    // camera_space_y = ((pixel_y + random_offset_y) / screen_height) * sensor_plane_height - (sensor_plane_height / 2)
 
     // float sensor_plane_height =  2.0f * tan(vert_fov_rad/2.0); // sensor plane is 1 unit away in Z direction
     // float sensor_plane_width = aspect_ratio * sensor_plane_height;
@@ -120,7 +130,7 @@ module generate_ray
 
     `FFLNR(camera_space_x_q, camera_space_x_d, ~ds_stall_i, clk)
     `FFLNR(camera_space_y_q, camera_space_y_d, ~ds_stall_i, clk)
-    `FFLSR(ds_vld_q, us_vld_i, ~ds_stall_i, '0, clk, rst)
+    `FFLSR(ds_vld_q, hash_vld, ~ds_stall_i, '0, clk, rst)
 
     // we now need to normalize the ray directions. With our chosen FOV (70) and aspect ratio (4/3), the input to the normalization function is
     // s = x² + y² + 1, with realistic range [1, 2.362) and supported range [1, 4), and the LUT computes 1/√s with realistic range [0.651, 1],
@@ -157,7 +167,7 @@ module generate_ray
     endproperty
 
     a_ray_held_during_stall: assert property (p_ray_held_during_stall)
-        else $error("Ray output was not held stable during ds_stall_i condition");
+        else $fatal(1, "Ray output was not held stable during ds_stall_i condition");
 
     property p_ray_not_valid_on_rst;
         @(posedge clk)
@@ -165,7 +175,7 @@ module generate_ray
     endproperty
 
     a_ray_not_valid_on_rst: assert property (p_ray_not_valid_on_rst)
-        else $error("ds_vld_o asserted during or after reset");
+        else $fatal(1, "ds_vld_o asserted during or after reset");
 
 `endif
     

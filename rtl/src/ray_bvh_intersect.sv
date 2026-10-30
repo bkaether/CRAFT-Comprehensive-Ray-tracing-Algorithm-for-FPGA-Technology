@@ -59,7 +59,7 @@ module ray_bvh_intersect
     // state FF
     `FFLSR(state, nxt_state, 1'b1, DONE_STATE, clk, rst)
 
-    assign nxt_state = (state === DONE_STATE) ? ROOT_NODE_STATE :
+    assign nxt_state = (state === DONE_STATE) ? ROOT_NODE_READ_BBOX : '0;
 
     // need two ray-bbox intersect modules to compute distance to each child node in parallel, so that we can
     // check the closer box first

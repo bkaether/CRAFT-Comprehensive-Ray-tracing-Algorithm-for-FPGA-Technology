@@ -29,10 +29,15 @@ class generate_ray_scoreboard;
 
     function void compute_expected(input generate_ray_observed_input observed_input, output real expected_ray_dir_x, output real expected_ray_dir_y);
 
-        int pixel_x;
-        int pixel_y;
-        real prng_offset_x;
-        real prng_offset_y;
+        logic [9:0] pixel_x;
+        logic [9:0] pixel_y;
+        logic [11:0] pixel_sample_idx;
+        logic [31:0] hash_key;
+        
+        logic [31:0] r0;
+        logic [31:0] r1;
+        real offset_x;
+        real offset_y;
 
         real vert_fov_rad;
         real sensor_plane_height;
@@ -44,10 +49,14 @@ class generate_ray_scoreboard;
         // extract fields from observed input
         pixel_x = observed_input.pixel_x;
         pixel_y = observed_input.pixel_y;
+        pixel_sample_idx = observed_input.pixel_sample_idx;
 
-        // convert fxpt offests from prng to real decimal offsets (16 fractional bits = divide by 2^16 = 65536)
-        prng_offset_x = real'(observed_input.prng_offset_x) / 65536.0; 
-        prng_offset_y = real'(observed_input.prng_offset_y) / 65536.0;
+        // get random offsets from hash model
+        hash_key = {pixel_x, pixel_y, pixel_sample_idx};
+        tea_hash_model(hash_key, PIXEL_SAMPLE_SALT, r0, r1);
+
+        offset_x = fxpt_to_real(r0[31:16], 16);
+        offset_y = fxpt_to_real(r1[31:16], 16);
 
         // calculate sensor plane width and height
         vert_fov_rad = fov_degrees * DEG2RAD;
@@ -55,8 +64,8 @@ class generate_ray_scoreboard;
         sensor_plane_width = (real'(pixel_width) / real'(pixel_height)) * sensor_plane_height;
         
         // calculate camera space x and y
-        expected_dir_x = ((pixel_x + prng_offset_x) / real'(pixel_width) * sensor_plane_width) - (sensor_plane_width / 2);
-        expected_dir_y = ((pixel_y + prng_offset_y) / real'(pixel_height) * sensor_plane_height) - (sensor_plane_height / 2);
+        expected_dir_x = ((real'(pixel_x) + offset_x) / real'(pixel_width) * sensor_plane_width) - (sensor_plane_width / 2);
+        expected_dir_y = ((real'(pixel_y) + offset_y) / real'(pixel_height) * sensor_plane_height) - (sensor_plane_height / 2);
 
         // we only need to return the x and y components of the expected ray direction, since the z component is always -1.0, and
         // the origin of the ray is always (0, 0, 0).

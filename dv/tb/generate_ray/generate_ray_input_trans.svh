@@ -1,7 +1,8 @@
 class generate_ray_input_trans;
 
-    rand bit [9:0] pixel_x;
-    rand bit [9:0] pixel_y;
+    rand bit [9:0]  pixel_x;
+    rand bit [9:0]  pixel_y;
+    rand bit [11:0] pixel_sample_idx;
     rand bit vld;
     rand bit stall;
 

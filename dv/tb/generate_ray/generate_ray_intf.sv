@@ -16,8 +16,9 @@ interface generate_ray_intf
 
     // upstream interface
     // data
-    logic [9:0] us_pixel_x_i;
-    logic [9:0] us_pixel_y_i;
+    logic [9:0]  us_pixel_x_i;
+    logic [9:0]  us_pixel_y_i;
+    logic [11:0] us_pixel_sample_idx_i;
     // control
     logic us_vld_i;
     logic us_stall_o;
@@ -29,16 +30,13 @@ interface generate_ray_intf
     logic ds_vld_o;
     logic ds_stall_i;
 
-    // probes to internal signals for testbench visibility
-    logic [15:0] prng_offset_x;
-    logic [15:0] prng_offset_y;
-
     // Driver view: drives DUT inputs just after the edge, samples DUT outputs just before it.
     clocking mcb @(posedge clk);
 
         output rst;
         output us_pixel_x_i;
         output us_pixel_y_i;
+        output us_pixel_sample_idx_i;
         output us_vld_i;
 
         input ds_ray_o;
@@ -54,14 +52,12 @@ interface generate_ray_intf
         input ds_stall_i;
         input us_pixel_x_i;
         input us_pixel_y_i;
+        input us_pixel_sample_idx_i;
         input us_vld_i;
 
         input ds_ray_o;
         input ds_vld_o;
         input us_stall_o;
-
-        input prng_offset_x;
-        input prng_offset_y;
 
     endclocking
 

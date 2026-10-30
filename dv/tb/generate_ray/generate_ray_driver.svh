@@ -32,9 +32,10 @@ class generate_ray_driver;
     task drive_trans(generate_ray_input_trans trans);
     
         // set DUT inputs to values from the transaction object
-        vif.mcb.us_pixel_x_i <= trans.pixel_x;
-        vif.mcb.us_pixel_y_i <= trans.pixel_y;
-        vif.mcb.us_vld_i <= trans.vld;
+        vif.mcb.us_pixel_x_i          <= trans.pixel_x;
+        vif.mcb.us_pixel_y_i          <= trans.pixel_y;
+        vif.mcb.us_pixel_sample_idx_i <= trans.pixel_sample_idx;
+        vif.mcb.us_vld_i              <= trans.vld;
 
         @(vif.mcb);
 

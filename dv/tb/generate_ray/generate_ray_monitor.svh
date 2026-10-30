@@ -30,8 +30,7 @@ class generate_ray_monitor;
                 // sample valid input
                 observed_input.pixel_x = vif.pcb.us_pixel_x_i;
                 observed_input.pixel_y = vif.pcb.us_pixel_y_i;
-                observed_input.prng_offset_x = vif.pcb.prng_offset_x;
-                observed_input.prng_offset_y = vif.pcb.prng_offset_y;
+                observed_input.pixel_sample_idx = vif.pcb.us_pixel_sample_idx_i;
 
                 // send to mailbox for the scoreboard
                 input_mbx.put(observed_input);

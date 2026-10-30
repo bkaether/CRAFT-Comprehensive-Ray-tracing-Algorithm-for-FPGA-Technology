@@ -75,19 +75,21 @@ package data_structs_pkg;
         logic [15:0] right;
     } bvh_node;
 
-    localparam [9:0] PIXEL_WIDTH = 10'd800;
-    localparam [9:0] PIXEL_HEIGHT = 10'd600;
+    typedef enum logic [31:0] { PIXEL_SAMPLE_SALT } rng_salt_t;
+
+    localparam logic [9:0] PIXEL_WIDTH = 10'd800;
+    localparam logic [9:0] PIXEL_HEIGHT = 10'd600;
 
     // reciprocal of pixel dimensions in fixed point format with 16 fractional bits
-    localparam [15:0] PIXEL_WIDTH_INV_Q0_16   = 16'd82;
-    localparam [15:0] PIXEL_HEIGHT_INV_Q0_16  = 16'd109;
+    localparam logic [15:0] PIXEL_WIDTH_INV_Q0_16   = 16'd82;
+    localparam logic [15:0] PIXEL_HEIGHT_INV_Q0_16  = 16'd109;
 
-    localparam signed [48:0] INFINITY_49             = 49'h0FFFFFFFFFFFF;
-    localparam signed [48:0] NEGATIVE_INFINITY_49    = 49'h1000000000000;
+    localparam logic signed [48:0] INFINITY_49             = 49'h0FFFFFFFFFFFF;
+    localparam logic signed [48:0] NEGATIVE_INFINITY_49    = 49'h1000000000000;
 
     // value "1" in Q12.16 fixed point format
-    localparam signed [27:0] ONE_Q12_16          = 28'h0010000;
-    localparam signed [27:0] NEGATIVE_ONE_Q12_16 = 28'hFFF0000;
+    localparam logic signed [27:0] ONE_Q12_16          = 28'h0010000;
+    localparam logic signed [27:0] NEGATIVE_ONE_Q12_16 = 28'hFFF0000;
 
     // default struct constants
     localparam vec2 VEC2_DEFAULT = '0;
@@ -97,5 +99,13 @@ package data_structs_pkg;
     localparam spectrum SPECTRUM_DEFAULT = '1;
     localparam ray RAY_DEFAULT = '0;
     localparam bbox BBOX_DEFAULT = '0;
+
+    // K constants for tea hash instances
+    localparam int  HASH_ROUNDS = 6;
+    localparam logic [31:0] DELTA = 32'h9E3779B9;
+    localparam logic [31:0] K0    = 32'hA341316C;     // any fixed 32-bit constants work;
+    localparam logic [31:0] K1    = 32'hC8013EA4;     // these are commonly used in GPU TEA RNG code
+    localparam logic [31:0] K2    = 32'hAD90777D;
+    localparam logic [31:0] K3    = 32'h7E95761E;
 
 endpackage

@@ -28,6 +28,7 @@ Every port name has three parts: **interface prefix + name + direction suffix**.
 - The suffix applies to **every port**. A convention that only covers some ports is worse than none.
 - Exception: `clk` and `rst` stay bare.
 - Port names describe the module's contract, not its implementation. Never put `_d` / `_q` in a port name.
+- Exception: helper sub-blocks that are only instantiated inside another block (e.g. `tea_hash`) don't face a neighbor, so they omit `us_` / `ds_` and use plain names with `_i` / `_o` (e.g. `vld_i`, `stall_i`, `key_i`). Pipeline-stage blocks that connect to neighboring blocks always use the prefixes.
 
 Port list order: `clk`, `rst`, then the upstream group (data, then control), then the downstream group (data, then control).
 
@@ -79,6 +80,15 @@ Valid flows with the data; stall flows against it.
 - Output ports are assigned from internal signals. An output driven directly from a `_q` reads as a registered output.
 
 Summary: prefixes say which interface, `_i` / `_o` mark the boundary, `_d` / `_q` mark the inside.
+  
+### Pipeline arrays
+
+When a pipeline is built as an array indexed by stage (e.g. in a generate loop), index 0 is usually the combinational input and every later index is a register output. A single `_d` or `_q` suffix can't describe both, so:
+
+- Name the array for what it carries, with a `_pipe` suffix and no `_d`/`_q` (e.g. `hash_pipe_0`, `vld_pipe`).
+- Comment the declaration with the index meaning: index 0 is the input, index `i` is the register output of stage `i`.
+- Inside the generate loop, the per-stage local wire feeding the flop keeps the `_d` suffix (e.g. `hash_pipe_0_d`), since it really is the next-state value.
+- The output port is assigned from the array's last index.
 
 ## Abbreviations
 

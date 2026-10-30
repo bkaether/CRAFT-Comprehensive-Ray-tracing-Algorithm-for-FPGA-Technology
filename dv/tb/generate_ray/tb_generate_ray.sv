@@ -2,6 +2,8 @@
 
 module tb_generate_ray();
 
+    import data_structs_pkg::*;
+    import tb_pkg::*;
     import tb_generate_ray_pkg::*;
     import backpressure_pkg::*;
 
@@ -45,6 +47,7 @@ module tb_generate_ray();
         // data
         .us_pixel_x_i(u_generate_ray_intf.us_pixel_x_i),
         .us_pixel_y_i(u_generate_ray_intf.us_pixel_y_i),
+        .us_pixel_sample_idx_i(u_generate_ray_intf.us_pixel_sample_idx_i),
         // control
         .us_vld_i(u_generate_ray_intf.us_vld_i),
         .us_stall_o(u_generate_ray_intf.us_stall_o),
@@ -57,11 +60,7 @@ module tb_generate_ray();
         .ds_stall_i(u_backpressure_intf.stall)
     );
 
-    // connect internal prng interface probes
-    assign u_generate_ray_intf.prng_offset_x = u_generate_ray.offset_x;
-    assign u_generate_ray_intf.prng_offset_y = u_generate_ray.offset_y;
-
-    // connect gen ray stall in
+    // connect downstream stall to the backpressure interface
     assign u_generate_ray_intf.ds_stall_i = u_backpressure_intf.stall;
 
     task automatic build();
@@ -115,6 +114,9 @@ module tb_generate_ray();
     initial begin
 
         build();
+
+        // run tea hash model self check
+        if (!tea_hash_model_selftest()) $fatal(1, "Tea hash model self test failed");
 
         // kick off forever tasks in the monitor and scoreboard, and backpressure task (set to mode NONE from constructor)
         fork
