@@ -6,8 +6,8 @@
 This module outputs a ray from the scene camera at (0, 0, 0) to a randomly sampled point
 within the given pixel x and y values
 
-THE LATENCY OF THIS MODULE IS HASH_ROUNDS+1 CYCLES TODO: document proper latency after norm module is done
-ds_ray_o appears at output HASH_ROUNDS+1 cycles after pixels indices arrive at input.
+THE LATENCY OF THIS MODULE IS (2*HASH_ROUNDS)+1 CYCLES - WITH DEFAULT PARAMETERS LATENCY IS 12 CYCLES
+TODO: update latency info after norm module is done
 
 Communicates via a valid/ready handshake (~ds_stall_i and ~us_stall_o act as ready) with adjacent blocks. A valid ray output will hold 
 until accepted by downstream block (ds_stall_i released). Similarly, a new pixel will not be accepted into the generate_ray pipeline
