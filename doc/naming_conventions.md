@@ -72,7 +72,6 @@ Valid flows with the data; stall flows against it.
 - `_i` / `_o` mark the module boundary only. Internal signals never carry a direction suffix.
 - `_d` / `_q` mark the two sides of a flop: `_d` is the next-state value going in, `_q` is the stored value coming out.
   - Use them only on signals that actually form a pair around a flop.
-  - Don't create a `_d` alias just to have one. If a port or signal feeds a flop directly with no logic in between, pass it straight into the macro. Create a named `_d` only when real next-state logic sits in front of the flop.
   - Use `_d` (not `_n`) for next-state, since `_n` reads as active-low.
 - Purely combinational intermediates (products, comparisons, slices) get plain names with no suffix.
 - Data registers are named for the computation that produced them (e.g. `camera_space_x_q`).

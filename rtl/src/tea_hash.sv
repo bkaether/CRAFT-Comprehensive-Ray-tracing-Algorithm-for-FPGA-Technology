@@ -30,47 +30,68 @@ module tea_hash
     // index 0 is the combinational input, index i is the output after round i
     logic [31:0]           v0_pipe   [ROUNDS+1];
     logic [31:0]           v1_pipe   [ROUNDS+1];
-
-    // these pipes need 2*rounds stages due to the extra flop in the v0/v1 path needed to break up combinational logic
-    logic [USER_WIDTH-1:0] user_pipe [(2*ROUNDS)+1];    
-    logic                  vld_pipe  [(2*ROUNDS)+1];
+    logic [USER_WIDTH-1:0] user_pipe [ROUNDS+1];    
+    logic                  vld_pipe  [ROUNDS+1];
 
     assign v0_pipe[0]   = key_i;
     assign v1_pipe[0]   = SALT;
     assign user_pipe[0] = user_i;
     assign vld_pipe[0]  = vld_i;
 
+    // tea hash function - split into two stages to meet timing
     for (genvar i = 1; i <= ROUNDS; i++) begin : g_hash_pipe
 
-        localparam [31:0] SUM = DELTA * i;
-        reg [31:0] v0_mid_q;
-        reg [31:0] v1_mid_q;
+        localparam logic [31:0] SUM = DELTA * i;
 
-        // tea hash function - split into two stages to meet timing
-        wire [31:0] v0_mid_d = v0_pipe[i-1] + ( ((v1_pipe[i-1] << 4) + K0) ^ (v1_pipe[i-1] + SUM) ^ ((v1_pipe[i-1] >> 5) + K1) );
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // ROUND i, LOGIC STAGE 1 OF 2
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        logic [31:0] v0_mid_d;
+        logic [31:0] v0_mid_q;
+        logic [31:0] v1_mid_d;
+        logic [31:0] v1_mid_q; 
+
+        logic [USER_WIDTH-1:0] user_mid_d;
+        logic [USER_WIDTH-1:0] user_mid_q; 
+        logic vld_mid_d;
+        logic vld_mid_q;
+
+        assign v0_mid_d = v0_pipe[i-1] + ( ((v1_pipe[i-1] << 4) + K0) ^ (v1_pipe[i-1] + SUM) ^ ((v1_pipe[i-1] >> 5) + K1) );
+        assign v1_mid_d = v1_pipe[i-1];
+        assign user_mid_d = user_pipe[i-1];
+        assign vld_mid_d = vld_pipe[i-1];
 
         `FFLNR(v0_mid_q, v0_mid_d, ~stall_i, clk)      // comb logic just computed feeds v0_mid
-        `FFLNR(v1_mid_q, v1_pipe[i-1], ~stall_i, clk)   // v1 just gets passed through to match latency
+        `FFLNR(v1_mid_q, v1_mid_d, ~stall_i, clk)      // v1 just gets passed through to match latency
+        `FFLNR(user_mid_q, user_mid_d, ~stall_i, clk)
+        `FFLSR(vld_mid_q, vld_mid_d, ~stall_i, '0, clk, rst)
 
-        wire [31:0] v1_pipe_d = v1_mid_q + ( ((v0_mid_q << 4) + K2) ^ (v0_mid_q + SUM) ^ ((v0_mid_q >> 5) + K3) );
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // ROUND i, LOGIC STAGE 2 OF 2
+        /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        // no reset on data pipes
-        `FFLNR(v0_pipe[i], v0_mid_q, ~stall_i, clk)     // now v0 gets passed through
+        logic [31:0] v0_pipe_d;
+        logic [31:0] v1_pipe_d;
+
+        logic [USER_WIDTH-1:0] user_pipe_d;
+        logic vld_pipe_d;
+
+        assign v0_pipe_d = v0_mid_q;
+        assign v1_pipe_d = v1_mid_q + ( ((v0_mid_q << 4) + K2) ^ (v0_mid_q + SUM) ^ ((v0_mid_q >> 5) + K3) );
+        assign user_pipe_d = user_mid_q;
+        assign vld_pipe_d = vld_mid_q;
+
+        `FFLNR(v0_pipe[i], v0_pipe_d, ~stall_i, clk)    // now v0 gets passed through
         `FFLNR(v1_pipe[i], v1_pipe_d, ~stall_i, clk)    // now use v1 combinational logic
+        `FFLNR(user_pipe[i], user_pipe_d, ~stall_i, clk)
+        `FFLSR(vld_pipe[i], vld_pipe_d, ~stall_i, '0, clk, rst)
    
-    end
-
-    for (genvar j = 1; j <= (2*ROUNDS); j++) begin : g_passthrough_pipe
-
-        // just passing along, no logic
-        `FFLNR(user_pipe[j], user_pipe[j-1], ~stall_i, clk)         
-        `FFLSR(vld_pipe[j], vld_pipe[j-1], ~stall_i, '0, clk, rst)  // control pipeline gets a reset flop
-
     end
 
     assign r0_o = v0_pipe[ROUNDS];
     assign r1_o = v1_pipe[ROUNDS];
-    assign user_o = user_pipe[2*ROUNDS];
-    assign vld_o = vld_pipe[2*ROUNDS];
+    assign user_o = user_pipe[ROUNDS];
+    assign vld_o = vld_pipe[ROUNDS];
     
 endmodule
