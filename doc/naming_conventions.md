@@ -80,8 +80,22 @@ Valid flows with the data; stall flows against it.
 - Output ports are assigned from internal signals. An output driven directly from a `_q` reads as a registered output.
 
 Summary: prefixes say which interface, `_i` / `_o` mark the boundary, `_d` / `_q` mark the inside.
+
+## Fixed-point notation
+
+Every fixed-point signal and constant states its format.
+
+| Notation | Meaning | Total width |
+|---|---|---|
+| `Qm.n` | unsigned | `m + n` |
+| `SQm.n` | signed, sign bit not counted in `m` | `m + n + 1` |
+
+- Plain `Q` always means unsigned. Any signed value must use `SQ`.
+- Example: `s_trimmed` is Q2.20 (22 bits); `x_i` is SQ2.16 (19 bits).
+- Format comments go on declaration lines, so the declared width can be checked against the format.
+- Constant names carry the format in uppercase: `ONE_SQ5_32`, `NEGATIVE_ONE_SQ12_16`.
   
-### Pipeline arrays
+## Generated Pipelines
 
 When a pipeline is built as an array indexed by stage (e.g. in a generate loop), index 0 is usually the combinational input and every later index is a register output. A single `_d` or `_q` suffix can't describe both, so:
 
@@ -89,6 +103,36 @@ When a pipeline is built as an array indexed by stage (e.g. in a generate loop),
 - Comment the declaration with the index meaning: index 0 is the input, index `i` is the register output of stage `i`.
 - Inside the generate loop, the per-stage local wire feeding the flop keeps the `_d` suffix (e.g. `hash_pipe_0_d`), since it really is the next-state value.
 - The output port is assigned from the array's last index.
+
+## Manual Pipeline Layout
+
+Multi-stage modules are written top to bottom in the same order the data flows, so reading the file follows the signal path and every register boundary is visible where it occurs.
+
+### Stage numbering
+- Stages are numbered from 1. Stage N is the logic that ends at the N-th register boundary.
+- Index 0 means the module inputs (zero registers crossed). This matches `_pipe` arrays, where index 0 is the input and index `i` is the output after stage `i`.
+- The last stage number is the module's latency. Signals from different stages must never be combined; a stage-3 signal meeting a stage-2 signal is a bug.
+
+### Stage structure
+Each stage is one contiguous block, in this order:
+1. **Banner comment** naming the stage and what it does, e.g. `// LOGIC STAGE 2 OF 4: LUT read`.
+2. **Declarations** for every signal the stage creates: intermediates, the `_d` values, and every flop that ends the stage. Put the fixed-point format on each declaration line (`// SQ2.16`), so the block doubles as the stage's bookkeeping table.
+3. **Logic**, as `assign` statements.
+4. **Flops** for everything that crosses the stage's boundary, including passthroughs and the valid bit.
+
+### Declarations and types
+- Internal signals use `logic`. Ports use `wire`.
+- Never declare and assign in one line with a variable type: `logic x = expr;` is a one-time initializer, not continuous logic. Declare on one line, drive with `assign` or a flop macro on another.
+- A signal used before the stage that computes it (feedback, or a signal sent back upstream) is declared in a short block at the top of the module, with a comment explaining why.
+
+### Naming across stages
+- Values computed in a stage are named for the computation and use plain `_d` / `_q` (`norm_div_trimmed_q`).
+- Passthroughs, which keep the same name across several boundaries, use a stage-numbered suffix: `x_q1`, `x_q2`, `x_q3`. The valid pipe follows the same pattern (`vld_q1`, `vld_q2`, …).
+- Every signal that continues past a boundary is registered in that stage's flop group, so each stage's flop list is a complete record of what crosses it.
+
+### Repeated stages
+- When the stages are identical operations (e.g. hash rounds), use a `_pipe` array and a generate loop instead of hand-written stages. Inside the loop body, keep the same logic → flop order.
+- Hand-written stages are for pipelines whose stages each do something different.
 
 ## Abbreviations
 
