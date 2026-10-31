@@ -4,7 +4,7 @@ class backpressure_driver;
 
     virtual backpressure_intf.drv vif;
 
-    backpressure_mode mode;
+    backpressure_mode_t mode;
     int rand_stall_prob;
     int burst_length;
     int burst_stall_prob;

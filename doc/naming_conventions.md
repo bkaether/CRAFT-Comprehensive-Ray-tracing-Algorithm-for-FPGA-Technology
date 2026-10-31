@@ -161,7 +161,7 @@ Rules:
 ## Constants, parameters, and types
 
 - Parameters and localparams are UPPERCASE (e.g. `SCALING_CONST`, `PIXEL_HEIGHT`).
-- Types have no `_t` suffix (e.g. `ray`, `point`, `material`). Because of this, a port or signal must never share a name with a type; the `_i` / `_o` suffix rule protects ports from this automatically.
+- All typedefs (structs, enums, aliases) end in _t; classes do not.”
 
 ## Comments
 

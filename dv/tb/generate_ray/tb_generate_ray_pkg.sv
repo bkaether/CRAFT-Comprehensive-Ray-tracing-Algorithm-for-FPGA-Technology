@@ -7,10 +7,10 @@ package tb_generate_ray_pkg;
         logic [9:0]  pixel_x;
         logic [9:0]  pixel_y;
         logic [11:0] pixel_sample_idx;
-    } generate_ray_observed_input;
+    } generate_ray_observed_input_t;
 
-    typedef mailbox #(generate_ray_observed_input) input_mbx_t;
-    typedef mailbox #(ray) output_mbx_t;
+    typedef mailbox #(generate_ray_observed_input_t) input_mbx_t;
+    typedef mailbox #(ray_t) output_mbx_t;
 
     `include "generate_ray_input_trans.svh"
     `include "generate_ray_driver.svh"

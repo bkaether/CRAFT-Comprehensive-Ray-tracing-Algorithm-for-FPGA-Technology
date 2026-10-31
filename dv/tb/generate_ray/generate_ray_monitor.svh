@@ -25,7 +25,7 @@ class generate_ray_monitor;
             // include reset condition here because a reset in the same cycle as a valid pixel would not make it through the pipeline,
             // and no matching output would be sampled
             if (vif.pcb.us_vld_i && !vif.pcb.us_stall_o && !vif.pcb.rst) begin
-                generate_ray_observed_input observed_input;
+                generate_ray_observed_input_t observed_input;
 
                 // sample valid input
                 observed_input.pixel_x = vif.pcb.us_pixel_x_i;
@@ -50,7 +50,7 @@ class generate_ray_monitor;
             // an assertion in the rtl module (or interface) is the right way to catch this unwanted condition
             if (vif.pcb.ds_vld_o && !vif.pcb.ds_stall_i) begin
                 // sample valid output
-                ray observed_output = vif.pcb.ds_ray_o;
+                ray_t observed_output = vif.pcb.ds_ray_o;
 
                 // send to mailbox for the scoreboard
                 output_mbx.put(observed_output);

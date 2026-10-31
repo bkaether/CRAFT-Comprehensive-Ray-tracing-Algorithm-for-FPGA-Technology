@@ -9,9 +9,9 @@ module ray_bbox_intersect
     input wire rst,
     input wire stall,
     input vec3 ray_orig,
-    input vec3_18_18 inv_ray_dir,
+    input vec3_18_18_t inv_ray_dir,
     input wire [2:0] div_by_zero,
-    input bbox box,
+    input bbox_t box,
 
     output wire hit,
     output wire signed [48:0] closest_hit_distance

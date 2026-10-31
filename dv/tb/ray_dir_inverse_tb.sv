@@ -4,9 +4,9 @@ module ray_dir_inverse_tb();
 
     reg clk;
     reg stall;
-    vec3 ray_dir;
+    vec3_t ray_dir;
 
-    vec3_18_18 inv_ray_dir;
+    vec3_18_18_t inv_ray_dir;
     wire [2:0] div_by_zero;
 
     always #4 clk = ~clk;

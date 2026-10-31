@@ -7,10 +7,10 @@ module ray_bbox_intersect_tb();
     reg clk;
     reg rst;
     reg stall;
-    vec3 ray_orig;
-    vec3_18_18 inv_ray_dir;
+    vec3_t ray_orig;
+    vec3_18_18_t inv_ray_dir;
     reg [2:0] div_by_zero;
-    bbox box;
+    bbox_t box;
 
     wire hit;
     wire [48:0] closest_hit_distance;
@@ -30,33 +30,33 @@ module ray_bbox_intersect_tb();
         .closest_hit_distance(closest_hit_distance)
     );
 
-    const bbox in_front = '{
+    const bbox_t in_front = '{
         min: '{x: (1 << 16), y: -(1 << 16), z: -(1 << 16)},
         max: '{x: (1 << 17), y: (1 << 16), z: (1 << 16)}
     };
 
-    const bbox behind = '{
+    const bbox_t behind = '{
         min: '{x: -(1 << 17), y: -(1 << 16), z: -(1 << 16)},
         max: '{x: -(1 << 16), y: (1 << 16), z: (1 << 16)}
     };
 
-    const bbox above = '{
+    const bbox_t above = '{
         min: '{x: -(1 << 16), y: (1 << 16), z: -(1 << 16)},
         max: '{x: (1 << 16), y: (1 << 17), z: (1 << 16)}
     };
 
-    const bbox _inside = '{
+    const bbox_t _inside = '{
         min: '{x: -(1 << 16), y: -(1 << 16), z: -(1 << 16)},
         max: '{x: (1 << 17), y: (1 << 17), z: (1 << 17)}
     };
 
-    const vec3_18_18 positive_x_dir = '{
+    const vec3_18_18_t positive_x_dir = '{
         x: (1 << 18),
         y: '0,
         z: '0
     };
 
-    const vec3_18_18 negative_x_dir = '{
+    const vec3_18_18_t negative_x_dir = '{
         x: -(1 << 18),
         y: '0,
         z: '0

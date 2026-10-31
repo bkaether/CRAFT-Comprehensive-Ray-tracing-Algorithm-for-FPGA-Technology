@@ -30,10 +30,10 @@ module generate_ray
 
     // downstream interface
     // data
-    output ray  ds_ray_o,
+    output ray_t  ds_ray_o,
     // control
-    output wire ds_vld_o,
-    input  wire ds_stall_i
+    output wire   ds_vld_o,
+    input  wire   ds_stall_i
 );
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

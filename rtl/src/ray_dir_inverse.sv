@@ -12,9 +12,9 @@ THE LATENCY OF THIS MODULE IS 41 CYCLES
 module ray_dir_inverse (
     input wire clk,
     input wire stall,
-    input vec3 ray_dir,
+    input vec3_t ray_dir,
 
-    output vec3_18_18 inv_ray_dir,
+    output vec3_18_18_t inv_ray_dir,
     output wire [2:0] div_by_zero
 );
 

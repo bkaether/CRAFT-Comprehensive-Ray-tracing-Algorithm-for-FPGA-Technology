@@ -7,8 +7,8 @@ module ray_bvh_intersect
 (
     input wire clk,
     input wire rst,
-    input vec3 ray_orig,
-    input vec3_18_18 inv_ray_dir,
+    input vec3_t ray_orig,
+    input vec3_18_18_t inv_ray_dir,
     input wire [2:0] div_by_zero,
 
     output wire stall,

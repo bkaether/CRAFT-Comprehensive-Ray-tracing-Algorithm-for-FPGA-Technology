@@ -27,7 +27,7 @@ class generate_ray_scoreboard;
         successful_checks = 0;
     endfunction
 
-    function void compute_expected(input generate_ray_observed_input observed_input, output real expected_ray_dir_x, output real expected_ray_dir_y, output real expected_ray_dir_z);
+    function void compute_expected(input generate_ray_observed_input_t observed_input, output real expected_ray_dir_x, output real expected_ray_dir_y, output real expected_ray_dir_z);
 
         logic [9:0] pixel_x;
         logic [9:0] pixel_y;
@@ -89,13 +89,13 @@ class generate_ray_scoreboard;
     task run();
         forever begin
 
-            generate_ray_observed_input observed_input;
+            generate_ray_observed_input_t observed_input;
 
             real expected_output_x;
             real expected_output_y;
             real expected_output_z;
 
-            ray observed_output;
+            ray_t observed_output;
 
             real observed_output_x;
             real observed_output_y;

@@ -15,7 +15,7 @@ module path_tracer_top (
 
     wire rst = 1'b0;
 
-    ray generated_ray;
+    ray_t generated_ray;
 
     // ray generation unit
     generate_ray ray_gen_i (
@@ -28,7 +28,7 @@ module path_tracer_top (
         .generated_ray(generated_ray)
     );
 
-    vec3_18_18 inv_ray_dir;
+    vec3_18_18_t inv_ray_dir;
     wire [2:0] div_by_zero;
 
     // ray inverse calculator
@@ -44,7 +44,7 @@ module path_tracer_top (
     // ray_bbox intersect routine
 
     // create a temporary const bbox to use for now
-    bbox box = bbox_default;
+    bbox_t box = bbox_default;
     wire [48:0] nxt_closest_hit_distance;
     reg  [48:0] closest_hit_distance_reg;
 

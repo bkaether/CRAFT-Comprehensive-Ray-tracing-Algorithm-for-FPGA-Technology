@@ -25,7 +25,7 @@ interface generate_ray_intf
 
     // downstream interface
     // data
-    ray ds_ray_o;
+    ray_t ds_ray_o;
     // control
     logic ds_vld_o;
     logic ds_stall_i;
