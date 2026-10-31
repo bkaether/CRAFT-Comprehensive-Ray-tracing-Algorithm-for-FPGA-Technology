@@ -4,9 +4,9 @@ package tb_generate_ray_pkg;
     import tb_pkg::*;
 
     typedef struct packed {
-        bit [9:0]  pixel_x;
-        bit [9:0]  pixel_y;
-        bit [11:0] pixel_sample_idx;
+        logic [9:0]  pixel_x;
+        logic [9:0]  pixel_y;
+        logic [11:0] pixel_sample_idx;
     } generate_ray_observed_input;
 
     typedef mailbox #(generate_ray_observed_input) input_mbx_t;

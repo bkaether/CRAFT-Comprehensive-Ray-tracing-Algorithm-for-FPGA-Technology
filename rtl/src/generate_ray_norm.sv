@@ -31,6 +31,8 @@ num_intervals = range / spacing = (4-1) / h
 
 with target error 2⁻¹⁷:
 num_intervals is 333, which we can round up to 512 for easier interpolating
+
+THE LATENCY OF THIS MODULE IS 4 CYCLES
 */
 module generate_ray_norm
     import data_structs_pkg::*;
@@ -204,9 +206,6 @@ module generate_ray_norm
     assign x_norm_o = x_norm_q;
     assign y_norm_o = y_norm_q;
     assign z_norm_o = z_norm_q;
-    assign vld_o = vld_q4;
-
-    // TODO: add readmemh calls to populate the LUT, read from a script output
-    
+    assign vld_o = vld_q4;    
 
 endmodule

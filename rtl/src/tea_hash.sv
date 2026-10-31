@@ -5,7 +5,7 @@
 // TEA-based counter hash: 64-bit block in, 64-bit block out (a permutation)
 // All values are unsigned 32-bit; all arithmetic wraps mod 2^32; shifts are logical
 
-// THE LATENCY OF THIS MODULE IS 2*ROUNDS CYCLES, DEFAULT LATENCY IS 12 CYCLES
+// THE LATENCY OF THIS MODULE IS 2*ROUNDS CYCLES - DEFAULT LATENCY IS 12 CYCLES
 module tea_hash 
     import data_structs_pkg::*;
 #(

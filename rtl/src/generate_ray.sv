@@ -3,20 +3,16 @@
 `include "ff_macros.svh"
 
 /*
-This module outputs a ray from the scene camera at (0, 0, 0) to a randomly sampled point
-within the given pixel x and y values
+This module outputs a ray from the scene camera to a randomly sampled point
+within the input pixel x and y values
 
-THE LATENCY OF THIS MODULE IS (2*HASH_ROUNDS)+1 CYCLES - WITH DEFAULT PARAMETERS LATENCY IS 12 CYCLES
-TODO: update latency info after norm module is done
-
-Communicates via a valid/ready handshake (~ds_stall_i and ~us_stall_o act as ready) with adjacent blocks. A valid ray output will hold 
-until accepted by downstream block (ds_stall_i released). Similarly, a new pixel will not be accepted into the generate_ray pipeline
-while us_stall_o is asserted. It is the job of the upstream block to hold its pixel during a stall. us_stall_o is just a passthrough
-of ds_stall_i.
+Uses the standard valid/stall handshake (see doc/naming_conventions.md). us_stall_o is a combinational passthrough of ds_stall_i
 
 This module matches the software model, which uses y=0 as the bottom row of the image, which is likely the opposite
 of the hardware frame buffer, so the frame buffer should write to addresses (PIXEL_HEIGHT-1) - us_pixel_y_i for a proper image
 
+THE LATENCY OF THIS MODULE IS 13 CYCLES
+TODO: update latency info after norm module is done
 */
 module generate_ray 
     import data_structs_pkg::*;
@@ -41,18 +37,22 @@ module generate_ray
     input  wire ds_stall_i
 );
 
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // LOGIC STAGE 1-12 OF 13
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     // tea hash offset signals
     // full hash outputs from the instantiations
-    wire [31:0] offset_x_full;
-    wire [31:0] offset_y_full;
-
-    wire        hash_vld;
+    logic [31:0] offset_x_full;
+    logic [31:0] offset_y_full;
+    logic        hash_vld;
 
     // delayed pixel outputs from the hash pipeline
-    wire [9:0] pixel_x;
-    wire [9:0] pixel_y;
+    logic [9:0] pixel_x;
+    logic [9:0] pixel_y;
 
     // one tea hash module for both x and y offsets
+    // LATENCY = 12 CYCLES
     tea_hash #(
         .ROUNDS(HASH_ROUNDS),
         .SALT(PIXEL_SAMPLE_SALT),
@@ -72,13 +72,9 @@ module generate_ray
         .vld_o(hash_vld)
     );
 
-    // trimmed for a 16 bit fractional offset
-    wire [15:0] offset_x = offset_x_full[31:16];  // [0, 1)
-    wire [15:0] offset_y = offset_y_full[31:16];  // [0, 1)
-
-    // random, not normalized pixel sample locations
-    wire [25:0] rand_x = {pixel_x, offset_x};   // [0, 800), Q10.16
-    wire [25:0] rand_y = {pixel_y, offset_y};   // [0, 600), Q10.16
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // LOGIC STAGE 13 OF 13
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // CONSTANTS TO MULTIPLY PIXEL SCREEN COORDINATES BY
 
@@ -100,33 +96,48 @@ module generate_ray
     //     - scales to camera sensor plane size based on FOV and aspect ratio
     //     - shifts to center around (0, 0) in camera space
 
-    // the final constants to multiply by are (sensor_plane_width / screen_width) and (sensor_plane_height / screen_height)
+    // the final constants to multiply by in this stage are (sensor_plane_width / screen_width) and (sensor_plane_height / screen_height)
     // with my numbers, they both come out to 0.002334. I decided that I wanted 16 bits of fractional precision to represent this number
-    // to maintain good accuracy, so multiply by 2^16 to get 153. Only 8 actual bits are needed to store this number for the multiply.
-    localparam logic        [7:0]  SCALING_CONST = 153;
-    localparam logic signed [18:0] SCREEN_TO_CAMERA_SHIFT_X = 19'sd61185;
-    localparam logic signed [18:0] SCREEN_TO_CAMERA_SHIFT_Y = 19'sd45889;
+    // to maintain good accuracy, so multiply by 2^16 to get 153. Only 8 actual bits are needed to store this number for the multiply,
+    // so interpret as Q8.0 for now, but will need to divide by 2^16 later
+    localparam logic        [7:0]  SCALING_CONST = 153;     // Stored as Q8.0, means 153/2¹⁶
+    localparam logic signed [18:0] SCREEN_TO_CAMERA_SHIFT_X = 19'sd61185;   // SQ2.16
+    localparam logic signed [18:0] SCREEN_TO_CAMERA_SHIFT_Y = 19'sd45889;   // SQ2.16
 
-    // to store the full result we need Q10.16 * Q8.0 = Q18.16 = 34 bits
-    wire [33:0] mult_result_x;
-    wire [33:0] mult_result_y;
+    logic [15:0] offset_x;      // Q0.16
+    logic [15:0] offset_y;      // Q0.16
+    logic [25:0] rand_x;        // Q10.16
+    logic [25:0] rand_y;        // Q10.16
+    logic [33:0] mult_result_x; // Q18.16
+    logic [33:0] mult_result_y; // Q18.16
+    logic signed [18:0] signed_mult_result_x;   // SQ2.16
+    logic signed [18:0] signed_mult_result_y;   // SQ2.16
+    logic signed [18:0] camera_space_x_d;       // SQ2.16
+    logic signed [18:0] camera_space_y_d;       // SQ2.16
+    logic signed [18:0] camera_space_x_q;       // SQ2.16
+    logic signed [18:0] camera_space_y_q;       // SQ2.16
+    logic               ds_vld_q;
 
+    // trimmed for a 16 bit fractional offset
+    assign offset_x = offset_x_full[31:16];  // [0, 1)
+    assign offset_y = offset_y_full[31:16];  // [0, 1)
+
+    // random, not normalized pixel sample locations
+    assign rand_x = {pixel_x, offset_x};   // [0, 800)
+    assign rand_y = {pixel_y, offset_y};   // [0, 600)
+
+    // Q10.16 * Q8.0 = Q18.16 = 34 bits
     assign mult_result_x = rand_x * SCALING_CONST;
     assign mult_result_y = rand_y * SCALING_CONST;
     
-    // need to right shift the mult result back by 16 bits (because of the 2^16 multiplied by earleir to get 153) for proper fixed point
-    // interpretation before subtracting the camera shift. This means Q18.16 -> Q 2.32. We only want 16 bits of fractional precision so
+    // need to right shift the mult result back by 16 bits (because of the 2^16 multiplied by earlier to get 153) for proper fixed point
+    // interpretation before subtracting the camera shift. This means Q18.16 -> Q2.32. We only want 16 bits of fractional precision so
     // we can just take the upper 18 bits, then add an extra bit for the signed bit
-    wire signed [18:0] signed_mult_result_x = $signed({1'b0, mult_result_x[33:16]});
-    wire signed [18:0] signed_mult_result_y = $signed({1'b0, mult_result_y[33:16]});
+    assign signed_mult_result_x = $signed({1'b0, mult_result_x[33:16]});
+    assign signed_mult_result_y = $signed({1'b0, mult_result_y[33:16]});
 
-    wire signed [18:0] camera_space_x_d = signed_mult_result_x - SCREEN_TO_CAMERA_SHIFT_X;  // Sign bit + Q2.16 (keep 16 fractional bits and trim unused integer bits)
-    wire signed [18:0] camera_space_y_d = signed_mult_result_y - SCREEN_TO_CAMERA_SHIFT_Y;  // Sign bit + Q2.16 (keep 16 fractional bits and trim unused integer bits)
-
-    // output registers
-    reg signed [18:0] camera_space_x_q;
-    reg signed [18:0] camera_space_y_q;
-    reg               ds_vld_q;
+    assign camera_space_x_d = signed_mult_result_x - SCREEN_TO_CAMERA_SHIFT_X;
+    assign camera_space_y_d = signed_mult_result_y - SCREEN_TO_CAMERA_SHIFT_Y;    
 
     `FFLNR(camera_space_x_q, camera_space_x_d, ~ds_stall_i, clk)
     `FFLNR(camera_space_y_q, camera_space_y_d, ~ds_stall_i, clk)
