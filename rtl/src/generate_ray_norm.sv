@@ -15,17 +15,17 @@ calculate how many table entries we need we can use the following equations.
 
 straight line error modeling a curve:
 
-actual_error <= f'' · h^2 / 8  
+actual_error <= f'' * h^2 / 8  
 
 (where f is our function 1/sqrt(s) and f'' is the curvature of that function)
 
-f''(s) = (3/4) · s^(−5/2)
+f''(s) = (3/4) * s^(-5/2)
 
 we want the largest possible error to fit within our constraints, and largest error occurs at s = 1 and f''(s) = 0.75, so
 
-max_actual_error = 0.75 · h^2 / 8 <= target_error = 2^-17  
+max_actual_error = 0.75 * h^2 / 8 <= target_error = 2^-17  
 
-h <= sqrt(8 · target_error / 0.75) where h is spacing between entries
+h <= sqrt(8 * target_error / 0.75) where h is spacing between entries
 
 num_intervals = range / spacing = (4-1) / h
 
@@ -40,8 +40,8 @@ module generate_ray_norm
     input wire clk,
     input wire rst,
 
-    input wire signed [18:0] x_i,   // SQ2.16
-    input wire signed [18:0] y_i,   // SQ2.16
+    input wire signed [17:0] x_i,   // SQ1.16
+    input wire signed [17:0] y_i,   // SQ1.16
     input wire vld_i,
     input wire stall_i,
 
@@ -54,23 +54,23 @@ module generate_ray_norm
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // LOGIC STAGE 1 OF 4
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    localparam logic signed [37:0] ONE_Q6_32 = (38'sd1 << 32);  // Q6.32
+    localparam logic signed [35:0] ONE_SQ3_32 = (36'sd1 << 32);  // SQ3.32
 
-    logic signed [37:0] x_sq;   // SQ5.32
-    logic signed [37:0] y_sq;   // SQ5.32
-    logic signed [37:0] s;      // SQ5.32
+    logic signed [35:0] x_sq;   // SQ3.32
+    logic signed [35:0] y_sq;   // SQ3.32
+    logic signed [35:0] s;      // SQ3.32
     logic        [21:0] s_trimmed_d; // Q2.20
     logic        [21:0] s_trimmed_q; // Q2.20
-    logic signed [18:0] x_q1; // SQ2.16
-    logic signed [18:0] y_q1; // SQ2.16
+    logic signed [17:0] x_q1; // SQ1.16
+    logic signed [17:0] y_q1; // SQ1.16
     logic               vld_q1;
     
-    // (SQ2.16) * (SQ2.16) = SQ5.32
+    // (SQ1.16) * (SQ1.16) = SQ3.32
     assign x_sq = x_i * x_i;
     assign y_sq = y_i * y_i;
     
-    // s = x² + y² + 1 -> SQ5.32
-    assign s = x_sq + y_sq + ONE_Q6_32;
+    // s = x^2 + y^2 + 1 -> SQ3.32
+    assign s = x_sq + y_sq + ONE_SQ3_32;
 
     // based on pixel range, the possible range of S is [1, 4)
     // we can trim off unused sign/integer bits and reduce unnecessary precision
@@ -113,8 +113,8 @@ module generate_ray_norm
     logic [16:0] lut_entry_q;        // Q1.16   
     logic [15:0] entry_difference_d; // Q0.16
     logic [15:0] entry_difference_q; // Q0.16
-    logic signed [18:0] x_q2;        // SQ2.16
-    logic signed [18:0] y_q2;        // SQ2.16
+    logic signed [17:0] x_q2;        // SQ1.16
+    logic signed [17:0] y_q2;        // SQ1.16
     logic               vld_q2;
 
     // s_trimmed_q = {lut_addr, s_interp}
@@ -150,8 +150,8 @@ module generate_ray_norm
     logic signed [37:0] norm_div_signed;    // SQ1.36
     logic signed [21:0] norm_div_trimmed_d; // SQ1.20
     logic signed [21:0] norm_div_trimmed_q; // SQ1.20
-    logic signed [18:0] x_q3;        // SQ2.16
-    logic signed [18:0] y_q3;        // SQ2.16
+    logic signed [17:0] x_q3;        // SQ1.16
+    logic signed [17:0] y_q3;        // SQ1.16
     logic               vld_q3;
 
     // the bit range of s_trimmed (Q2.20) supports the range of [0, 4) with 512 entries, so spacing is (4-0)/512 = 1/128
@@ -176,8 +176,8 @@ module generate_ray_norm
     // LOGIC STAGE 4 OF 4
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    logic signed [40:0] x_norm_full;    // SQ4.36
-    logic signed [40:0] y_norm_full;    // SQ4.36
+    logic signed [39:0] x_norm_full;    // SQ3.36
+    logic signed [39:0] y_norm_full;    // SQ3.36
     logic signed [21:0] z_norm_full;    // SQ1.20
     logic signed [17:0] x_norm_d;       // SQ1.16 - normalized vector componenets can be [-1, 1]
     logic signed [17:0] y_norm_d;       // SQ1.16 - normalized vector componenets can be [-1, 1]
@@ -188,13 +188,13 @@ module generate_ray_norm
     logic               vld_q4;
 
     // normalize x, y, and z with final multiply (z is always -1 in camera space)
-    assign x_norm_full = x_q3 * norm_div_trimmed_q;   // SQ2.16 * SQ1.20 = SQ4.36
-    assign y_norm_full = y_q3 * norm_div_trimmed_q;   // SQ2.16 * SQ1.20 = SQ4.36
+    assign x_norm_full = x_q3 * norm_div_trimmed_q;   // SQ1.16 * SQ1.20 = SQ3.36
+    assign y_norm_full = y_q3 * norm_div_trimmed_q;   // SQ1.16 * SQ1.20 = SQ3.36
     assign z_norm_full = -norm_div_trimmed_q;         // SQ1.20
 
     // trim for final output
-    assign x_norm_d = {x_norm_full[40], x_norm_full[36:20]};
-    assign y_norm_d = {y_norm_full[40], y_norm_full[36:20]};
+    assign x_norm_d = {x_norm_full[39], x_norm_full[36:20]};
+    assign y_norm_d = {y_norm_full[39], y_norm_full[36:20]};
     assign z_norm_d = z_norm_full[21:4];
 
     `FFLNR(x_norm_q, x_norm_d, ~stall_i, clk)
@@ -215,11 +215,11 @@ module generate_ray_norm
 
     property p_lut_input_bound;
         @(posedge clk) disable iff (rst)
-        vld_i |-> ((s >= 38'sh100000000) && (s < 38'sh400000000)); // (s >= 1) && (s < 4) in SQ5.32
+        vld_i |-> ((s >= ONE_SQ3_32) && (s < (4*ONE_SQ3_32))); // (s >= 1) && (s < 4) in SQ3.32
     endproperty
 
     a_lut_input_bound: assert property (p_lut_input_bound)
-        else $fatal(1, "s outside the norm LUT’s supported range [1, 4): the FOV or aspect ratio produces directions the table does not cover.");
+        else $fatal(1, "s outside the norm LUT's supported range [1, 4): the FOV or aspect ratio produces directions the table does not cover.");
 
 `endif
 

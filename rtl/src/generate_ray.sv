@@ -143,16 +143,17 @@ module generate_ray
 
     logic signed [18:0] camera_space_x_d;       // SQ2.16
     logic signed [18:0] camera_space_y_d;       // SQ2.16
-    logic signed [18:0] camera_space_x_q;       // SQ2.16
-    logic signed [18:0] camera_space_y_q;       // SQ2.16
+    logic signed [17:0] camera_space_x_q;       // SQ1.16
+    logic signed [17:0] camera_space_y_q;       // SQ1.16
     logic       vld_q14;
 
 
     assign camera_space_x_d = signed_mult_result_x_q - SCREEN_TO_CAMERA_SHIFT_X;
     assign camera_space_y_d = signed_mult_result_y_q - SCREEN_TO_CAMERA_SHIFT_Y;    
 
-    `FFLNR(camera_space_x_q, camera_space_x_d, ~ds_stall_i, clk)
-    `FFLNR(camera_space_y_q, camera_space_y_d, ~ds_stall_i, clk)
+    // we can shave a bit off of the camera_space_*_d (safe because of the possible value ranges after subtraction)
+    `FFLNR(camera_space_x_q, camera_space_x_d[17:0], ~ds_stall_i, clk)
+    `FFLNR(camera_space_y_q, camera_space_y_d[17:0], ~ds_stall_i, clk)
     `FFLSR(vld_q14, vld_q13, ~ds_stall_i, '0, clk, rst)
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -223,6 +224,19 @@ module generate_ray
 
     a_ray_not_valid_on_rst: assert property (p_ray_not_valid_on_rst)
         else $fatal(1, "ds_vld_o asserted during or after reset");
+
+    localparam logic signed [18:0] TWO_SQ2_16 = 19'sd131072;   // 2.0 in SQ2.16 (2 * 2^16)
+
+    // camera_space_*_d is SQ2.16 but is registered as SQ1.16; the dropped bit 18 is only a sign copy
+    // if the value is in [-2, 2). Checked on the cycle the subtract result is valid (stage 14 input).
+    property p_camera_space_fits_sq1_16;
+        @(posedge clk) disable iff (rst)
+        vld_q13 |-> ((camera_space_x_d >= -TWO_SQ2_16) && (camera_space_x_d < TWO_SQ2_16) &&
+                     (camera_space_y_d >= -TWO_SQ2_16) && (camera_space_y_d < TWO_SQ2_16));
+    endproperty
+
+    a_camera_space_fits_sq1_16: assert property (p_camera_space_fits_sq1_16)
+        else $fatal(1, "camera_space x/y outside [-2, 2): the trim to SQ1.16 would wrap");
 
 `endif
     
