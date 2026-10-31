@@ -23,6 +23,13 @@ package data_structs_pkg;
         logic signed [27:0] z;
     } vec3_t;
 
+    // SQ1.16 to cover [-1, 1]
+    typedef struct packed {
+        logic signed [17:0] x;
+        logic signed [17:0] y;
+        logic signed [17:0] z;
+    } unit_vec3_t;
+
     typedef struct packed {
         logic signed [27:0] x;
         logic signed [27:0] y;
@@ -44,7 +51,7 @@ package data_structs_pkg;
 
     typedef struct packed {
         point_t orig;
-        vec3_t dir; 
+        unit_vec3_t dir;  // rays use normalized direction
     } ray_t;
 
     typedef struct packed {

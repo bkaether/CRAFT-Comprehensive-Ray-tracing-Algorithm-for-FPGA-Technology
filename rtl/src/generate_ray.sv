@@ -165,9 +165,9 @@ module generate_ray
     // which means we are in a good position to use a look up table with linear interpolation to get good accuracy with reasonable hardware cost.
     // See generate_ray_norm.sv for more info
 
-    logic signed [17:0] norm_dir_x;
-    logic signed [17:0] norm_dir_y;
-    logic signed [17:0] norm_dir_z;
+    logic signed [17:0] norm_dir_x; // SQ1.16
+    logic signed [17:0] norm_dir_y; // SQ1.16
+    logic signed [17:0] norm_dir_z; // SQ1.16
     logic               norm_dir_vld;
 
     // LATENCY = 4 CYCLES
