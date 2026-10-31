@@ -48,7 +48,6 @@ module generate_ray_norm
     output wire signed [17:0] x_norm_o,   // SQ1.16 - normalized vector componenets can be [-1, 1]
     output wire signed [17:0] y_norm_o,   // SQ1.16 - normalized vector componenets can be [-1, 1]
     output wire signed [17:0] z_norm_o,   // SQ1.16 - normalized vector componenets can be [-1, 1]
-
     output wire vld_o
 );
 
@@ -180,9 +179,9 @@ module generate_ray_norm
     logic signed [40:0] x_norm_full;    // SQ4.36
     logic signed [40:0] y_norm_full;    // SQ4.36
     logic signed [21:0] z_norm_full;    // SQ1.20
-    logic signed [17:0] x_norm_d        // SQ1.16 - normalized vector componenets can be [-1, 1]
-    logic signed [17:0] y_norm_d        // SQ1.16 - normalized vector componenets can be [-1, 1]
-    logic signed [17:0] z_norm_d        // SQ1.16 - normalized vector componenets can be [-1, 1]
+    logic signed [17:0] x_norm_d;       // SQ1.16 - normalized vector componenets can be [-1, 1]
+    logic signed [17:0] y_norm_d;       // SQ1.16 - normalized vector componenets can be [-1, 1]
+    logic signed [17:0] z_norm_d;       // SQ1.16 - normalized vector componenets can be [-1, 1]
     logic signed [17:0] x_norm_q;       // SQ1.16 - normalized vector componenets can be [-1, 1]
     logic signed [17:0] y_norm_q;       // SQ1.16 - normalized vector componenets can be [-1, 1]
     logic signed [17:0] z_norm_q;       // SQ1.16 - normalized vector componenets can be [-1, 1]
@@ -207,5 +206,21 @@ module generate_ray_norm
     assign y_norm_o = y_norm_q;
     assign z_norm_o = z_norm_q;
     assign vld_o = vld_q4;    
+
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ASSERTIONS
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+`ifndef SYNTHESIS
+
+    property p_lut_input_bound;
+        @(posedge clk) disable iff (rst)
+        vld_i |-> ((s >= 38'sh100000000) && (s < 38'sh400000000)); // (s >= 1) && (s < 4) in SQ5.32
+    endproperty
+
+    a_lut_input_bound: assert property (p_lut_input_bound)
+        else $fatal(1, "s outside the norm LUT’s supported range [1, 4): the FOV or aspect ratio produces directions the table does not cover.");
+
+`endif
 
 endmodule

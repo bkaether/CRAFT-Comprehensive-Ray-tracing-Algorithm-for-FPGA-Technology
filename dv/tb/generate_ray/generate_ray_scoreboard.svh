@@ -27,7 +27,7 @@ class generate_ray_scoreboard;
         successful_checks = 0;
     endfunction
 
-    function void compute_expected(input generate_ray_observed_input observed_input, output real expected_ray_dir_x, output real expected_ray_dir_y);
+    function void compute_expected(input generate_ray_observed_input observed_input, output real expected_ray_dir_x, output real expected_ray_dir_y, output real expected_ray_dir_z);
 
         logic [9:0] pixel_x;
         logic [9:0] pixel_y;
@@ -45,6 +45,11 @@ class generate_ray_scoreboard;
 
         real expected_dir_x;
         real expected_dir_y;
+        real expected_dir_z;
+
+        real norm_expected_dir_x;
+        real norm_expected_dir_y;
+        real norm_expected_dir_z;
 
         // extract fields from observed input
         pixel_x = observed_input.pixel_x;
@@ -66,11 +71,14 @@ class generate_ray_scoreboard;
         // calculate camera space x and y
         expected_dir_x = ((real'(pixel_x) + offset_x) / real'(pixel_width) * sensor_plane_width) - (sensor_plane_width / 2);
         expected_dir_y = ((real'(pixel_y) + offset_y) / real'(pixel_height) * sensor_plane_height) - (sensor_plane_height / 2);
+        expected_dir_z = -1;
 
-        // we only need to return the x and y components of the expected ray direction, since the z component is always -1.0, and
-        // the origin of the ray is always (0, 0, 0).
-        expected_ray_dir_x = expected_dir_x;
-        expected_ray_dir_y = expected_dir_y;
+        vec3_normalize(expected_dir_x, expected_dir_y, expected_dir_z, norm_expected_dir_x, norm_expected_dir_y, norm_expected_dir_z);
+
+        // the origin of the ray is always (0, 0, 0), no need to check it at this time
+        expected_ray_dir_x = norm_expected_dir_x;
+        expected_ray_dir_y = norm_expected_dir_y;
+        expected_ray_dir_z = norm_expected_dir_z;
 
     endfunction
 
@@ -85,30 +93,37 @@ class generate_ray_scoreboard;
 
             real expected_output_x;
             real expected_output_y;
+            real expected_output_z;
 
             ray observed_output;
+
             real observed_output_x;
             real observed_output_y;
+            real observed_output_z;
 
             // get the next input transaction from the mailbox
             input_mbx.get(observed_input);
 
             // calculate expected output based on observed input
-            compute_expected(observed_input, expected_output_x, expected_output_y);
+            compute_expected(observed_input, expected_output_x, expected_output_y, expected_output_z);
 
             // get the next output transaction from the mailbox
             output_mbx.get(observed_output);
 
-            // convert observed x and y dir output from fixed point to real for comparison
+            // convert observed normalized dir outputs from fixed point to real for comparison
             observed_output_x = fxpt_to_real(observed_output.dir.x, 16);
             observed_output_y = fxpt_to_real(observed_output.dir.y, 16);
+            observed_output_z = fxpt_to_real(observed_output.dir.z, 16);
 
             // compare expected and observed outputs
-            if (is_close_real(expected_output_x, observed_output_x, error_threshold) && is_close_real(expected_output_y, observed_output_y, error_threshold)) begin
-                $display("Check passed: expected (%f, %f), got (%f, %f)", expected_output_x, expected_output_y, observed_output_x, observed_output_y);
+            if (is_close_real(expected_output_x, observed_output_x, error_threshold) && 
+                is_close_real(expected_output_y, observed_output_y, error_threshold) &&
+                is_close_real(expected_output_z, observed_output_z, error_threshold)) begin
+
+                $display("Check passed: expected (%f, %f, %f), got (%f, %f, %f)", expected_output_x, expected_output_y, expected_output_z, observed_output_x, observed_output_y, observed_output_z);
                 successful_checks++;
             end else begin
-                $error("Mismatch between expected and observed outputs: expected (%f, %f), got (%f, %f)", expected_output_x, expected_output_y, observed_output_x, observed_output_y);
+                $error("Mismatch between expected and observed outputs: expected (%f, %f, %f), got (%f, %f, %f)", expected_output_x, expected_output_y, expected_output_z, observed_output_x, observed_output_y, observed_output_z);
                 err_count++;
             end
         end

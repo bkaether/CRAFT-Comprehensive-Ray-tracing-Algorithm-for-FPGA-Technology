@@ -19,6 +19,34 @@ package tb_pkg;
         return abs_real(a - b) <= threshold;
     endfunction
 
+    // Euclidean length of a 3D vector
+    function automatic real vec3_length(input real x, input real y, input real z);
+        return $sqrt(x*x + y*y + z*z);
+    endfunction
+
+    // Normalize a 3D vector to unit length (ideal real-valued math, for expected values).
+    // A zero-length vector has no direction, so it is treated as a testbench error.
+    function automatic void vec3_normalize(
+        input  real x,
+        input  real y,
+        input  real z,
+        output real x_norm,
+        output real y_norm,
+        output real z_norm
+    );
+        real length;
+
+        length = vec3_length(x, y, z);
+
+        if (length == 0.0) begin
+            $fatal(1, "vec3_normalize(): zero-length vector has no direction");
+        end
+
+        x_norm = x / length;
+        y_norm = y / length;
+        z_norm = z / length;
+    endfunction
+
     //////////////////////////////////////////////////////////////////////////
     // TEA hash reference model (bit-exact model of rtl/src/tea_hash.sv)
     //

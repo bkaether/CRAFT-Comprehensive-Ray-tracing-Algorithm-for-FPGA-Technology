@@ -11,8 +11,7 @@ Uses the standard valid/stall handshake (see doc/naming_conventions.md). us_stal
 This module matches the software model, which uses y=0 as the bottom row of the image, which is likely the opposite
 of the hardware frame buffer, so the frame buffer should write to addresses (PIXEL_HEIGHT-1) - us_pixel_y_i for a proper image
 
-THE LATENCY OF THIS MODULE IS 13 CYCLES
-TODO: update latency info after norm module is done
+THE LATENCY OF THIS MODULE IS 17 CYCLES
 */
 module generate_ray 
     import data_structs_pkg::*;
@@ -38,18 +37,18 @@ module generate_ray
 );
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // LOGIC STAGE 1-12 OF 13
+    // LOGIC STAGE 1-12 OF 17
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // tea hash offset signals
     // full hash outputs from the instantiations
     logic [31:0] offset_x_full;
     logic [31:0] offset_y_full;
-    logic        hash_vld;
+    logic        vld_q12;
 
     // delayed pixel outputs from the hash pipeline
-    logic [9:0] pixel_x;
-    logic [9:0] pixel_y;
+    logic [9:0] pixel_x_q12;
+    logic [9:0] pixel_y_q12;
 
     // one tea hash module for both x and y offsets
     // LATENCY = 12 CYCLES
@@ -68,12 +67,12 @@ module generate_ray
 
         .r0_o(offset_x_full),
         .r1_o(offset_y_full),
-        .user_o({pixel_x, pixel_y}),
-        .vld_o(hash_vld)
+        .user_o({pixel_x_q12, pixel_y_q12}),
+        .vld_o(vld_q12)
     );
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // LOGIC STAGE 13 OF 13
+    // LOGIC STAGE 13 OF 17
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // CONSTANTS TO MULTIPLY PIXEL SCREEN COORDINATES BY
@@ -100,7 +99,7 @@ module generate_ray
     // with my numbers, they both come out to 0.002334. I decided that I wanted 16 bits of fractional precision to represent this number
     // to maintain good accuracy, so multiply by 2^16 to get 153. Only 8 actual bits are needed to store this number for the multiply,
     // so interpret as Q8.0 for now, but will need to divide by 2^16 later
-    localparam logic        [7:0]  SCALING_CONST = 153;     // Stored as Q8.0, means 153/2¹⁶
+    localparam logic        [7:0]  SCALING_CONST = 153;     // Stored as Q8.0, means 153/2¹�?�
     localparam logic signed [18:0] SCREEN_TO_CAMERA_SHIFT_X = 19'sd61185;   // SQ2.16
     localparam logic signed [18:0] SCREEN_TO_CAMERA_SHIFT_Y = 19'sd45889;   // SQ2.16
 
@@ -116,15 +115,15 @@ module generate_ray
     logic signed [18:0] camera_space_y_d;       // SQ2.16
     logic signed [18:0] camera_space_x_q;       // SQ2.16
     logic signed [18:0] camera_space_y_q;       // SQ2.16
-    logic               ds_vld_q;
+    logic       vld_q13;
 
     // trimmed for a 16 bit fractional offset
     assign offset_x = offset_x_full[31:16];  // [0, 1)
     assign offset_y = offset_y_full[31:16];  // [0, 1)
 
     // random, not normalized pixel sample locations
-    assign rand_x = {pixel_x, offset_x};   // [0, 800)
-    assign rand_y = {pixel_y, offset_y};   // [0, 600)
+    assign rand_x = {pixel_x_q12, offset_x};   // [0, 800)
+    assign rand_y = {pixel_y_q12, offset_y};   // [0, 600)
 
     // Q10.16 * Q8.0 = Q18.16 = 34 bits
     assign mult_result_x = rand_x * SCALING_CONST;
@@ -141,23 +140,47 @@ module generate_ray
 
     `FFLNR(camera_space_x_q, camera_space_x_d, ~ds_stall_i, clk)
     `FFLNR(camera_space_y_q, camera_space_y_d, ~ds_stall_i, clk)
-    `FFLSR(ds_vld_q, hash_vld, ~ds_stall_i, '0, clk, rst)
+    `FFLSR(vld_q13, vld_q12, ~ds_stall_i, '0, clk, rst)
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // LOGIC STAGE 14-17 OF 17
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // we now need to normalize the ray directions. With our chosen FOV (70) and aspect ratio (4/3), the input to the normalization function is
     // s = x² + y² + 1, with realistic range [1, 2.362) and supported range [1, 4), and the LUT computes 1/√s with realistic range [0.651, 1],
     // which means we are in a good position to use a look up table with linear interpolation to get good accuracy with reasonable hardware cost.
     // See generate_ray_norm.sv for more info
 
+    logic signed [17:0] norm_dir_x;
+    logic signed [17:0] norm_dir_y;
+    logic signed [17:0] norm_dir_z;
+    logic               norm_dir_vld;
+
+    // LATENCY = 4 CYCLES
+    generate_ray_norm u_generate_ray_norm (
+        .clk(clk),
+        .rst(rst),
+
+        .x_i(camera_space_x_q),
+        .y_i(camera_space_y_q),
+        .vld_i(vld_q13),
+        .stall_i(ds_stall_i),
+
+        .x_norm_o(norm_dir_x),
+        .y_norm_o(norm_dir_y),
+        .z_norm_o(norm_dir_z),
+        .vld_o(norm_dir_vld)
+    );
+
     // set output ray origin
     // by default camera position is the origin
     assign ds_ray_o.orig = POINT_DEFAULT;
 
     // set output ray direction
-    assign ds_ray_o.dir.x = camera_space_x_q;
-    assign ds_ray_o.dir.y = camera_space_y_q;
-    assign ds_ray_o.dir.z = NEGATIVE_ONE_Q12_16; // ray points into the scene, which is in the negative z direction
-
-    assign ds_vld_o = ds_vld_q;
+    assign ds_ray_o.dir.x = norm_dir_x;
+    assign ds_ray_o.dir.y = norm_dir_y;
+    assign ds_ray_o.dir.z = norm_dir_z;
+    assign ds_vld_o = norm_dir_vld;
 
     // stall passthrough
     assign us_stall_o = ds_stall_i;
@@ -167,9 +190,9 @@ module generate_ray
     // potentially the use of certain Xilinx IP cores which are constrained to lower
     // bit widths, such as the DSP macro
 
-    //////////////////////////////////////////////////////////////////////////
-    // assertions
-    //////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // ASSERTIONS
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 `ifndef SYNTHESIS
 
     property p_ray_held_during_stall;
