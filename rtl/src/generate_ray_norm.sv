@@ -5,17 +5,17 @@
 
 /*
 This module is used to normalize the raw ray directions that are calculated in genereate_ray.  With our chosen FOV (70)
-and aspect ratio (4/3), we will use a look up table to map s = (x² + y² + 1) to the output 1 / √(x² + y² + 1).
-z² is always 1 because the z direction of all generated rays is -1. The input range of s is [1, 2.362), which means we
+and aspect ratio (4/3), we will use a look up table to map s = (x^2 + y^2 + 1) to the output 1 / sqrt(x^2 + y^2 + 1).
+z^2 is always 1 because the z direction of all generated rays is -1. The input range of s is [1, 2.362), which means we
 are in a good position to use a look up table with linear interpolation to get great accuracy with reasonable hardware cost.
 
 We will represent a larger input range [1, 4) to support potential changes to aspect ratio and FOV in the future. For the input
-range [1, 4), the full output range is (0.5, 1]. We want 16 fractional bits of precision, so aim for accuracy within 2⁻¹⁷. To
+range [1, 4), the full output range is (0.5, 1]. We want 16 fractional bits of precision, so aim for accuracy within 2^-17. To
 calculate how many table entries we need we can use the following equations.
 
 straight line error modeling a curve:
 
-actual_error <= f'' · h² / 8  
+actual_error <= f'' · h^2 / 8  
 
 (where f is our function 1/sqrt(s) and f'' is the curvature of that function)
 
@@ -23,13 +23,13 @@ f''(s) = (3/4) · s^(−5/2)
 
 we want the largest possible error to fit within our constraints, and largest error occurs at s = 1 and f''(s) = 0.75, so
 
-max_actual_error = 0.75 · h² / 8 <= target_error = 2⁻¹⁷   
+max_actual_error = 0.75 · h^2 / 8 <= target_error = 2^-17  
 
-h <= √(8 · target_error / 0,75) where h is spacing between entries
+h <= sqrt(8 · target_error / 0.75) where h is spacing between entries
 
 num_intervals = range / spacing = (4-1) / h
 
-with target error 2⁻¹⁷:
+with target error 2^-17:
 num_intervals is 333, which we can round up to 512 for easier interpolating
 
 THE LATENCY OF THIS MODULE IS 4 CYCLES
@@ -86,13 +86,13 @@ module generate_ray_norm
     // LOGIC STAGE 2 OF 4
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // look up table which stores the normalization values 1/√(s) for a givin value of s = x² + y² + 1
+    // look up table which stores the normalization values 1/sqrt(s) for a givin value of s = x^2 + y^2 + 1
     // input  s_trimmed      -> [1, 4),   Q2.20 format
     // output {lut_entry, entry_difference} with
     //      lut_entry           -> (0.5, 1], Q1.16 format
     //      entry_difference -> (0, 1),   Q0.16 format
 
-    // entry_difference, the difference between the current entry and the next entry, is always positive because 1/√(s) is a strictly decreasing
+    // entry_difference, the difference between the current entry and the next entry, is always positive because 1/sqrt(s) is a strictly decreasing
     // function. This difference is needed for interpolation, and it's cheaper to store in the table than to do a subtraction for every read.
     // It requires a only 8 bits to store because the largest difference between entries in the table is 0.00388 (no difference will use the first
     // 8 fractional bits of the Q0.16 format

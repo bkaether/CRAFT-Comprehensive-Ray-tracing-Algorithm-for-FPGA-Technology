@@ -11,7 +11,7 @@ Uses the standard valid/stall handshake (see doc/naming_conventions.md). us_stal
 This module matches the software model, which uses y=0 as the bottom row of the image, which is likely the opposite
 of the hardware frame buffer, so the frame buffer should write to addresses (PIXEL_HEIGHT-1) - us_pixel_y_i for a proper image
 
-THE LATENCY OF THIS MODULE IS 17 CYCLES
+THE LATENCY OF THIS MODULE IS 18 CYCLES
 */
 module generate_ray 
     import data_structs_pkg::*;
@@ -37,7 +37,7 @@ module generate_ray
 );
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // LOGIC STAGE 1-12 OF 17
+    // LOGIC STAGE 1-12 OF 18
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // tea hash offset signals
@@ -72,7 +72,7 @@ module generate_ray
     );
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // LOGIC STAGE 13 OF 17
+    // LOGIC STAGE 13 OF 18
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // CONSTANTS TO MULTIPLY PIXEL SCREEN COORDINATES BY
@@ -99,7 +99,7 @@ module generate_ray
     // with my numbers, they both come out to 0.002334. I decided that I wanted 16 bits of fractional precision to represent this number
     // to maintain good accuracy, so multiply by 2^16 to get 153. Only 8 actual bits are needed to store this number for the multiply,
     // so interpret as Q8.0 for now, but will need to divide by 2^16 later
-    localparam logic        [7:0]  SCALING_CONST = 153;     // Stored as Q8.0, means 153/2¹�?�
+    localparam logic        [7:0]  SCALING_CONST = 153;     // Stored as Q8.0, means 153/2^16
     localparam logic signed [18:0] SCREEN_TO_CAMERA_SHIFT_X = 19'sd61185;   // SQ2.16
     localparam logic signed [18:0] SCREEN_TO_CAMERA_SHIFT_Y = 19'sd45889;   // SQ2.16
 
@@ -109,12 +109,10 @@ module generate_ray
     logic [25:0] rand_y;        // Q10.16
     logic [33:0] mult_result_x; // Q18.16
     logic [33:0] mult_result_y; // Q18.16
-    logic signed [18:0] signed_mult_result_x;   // SQ2.16
-    logic signed [18:0] signed_mult_result_y;   // SQ2.16
-    logic signed [18:0] camera_space_x_d;       // SQ2.16
-    logic signed [18:0] camera_space_y_d;       // SQ2.16
-    logic signed [18:0] camera_space_x_q;       // SQ2.16
-    logic signed [18:0] camera_space_y_q;       // SQ2.16
+    logic signed [18:0] signed_mult_result_x_d;   // SQ2.16
+    logic signed [18:0] signed_mult_result_y_d;   // SQ2.16
+    logic signed [18:0] signed_mult_result_x_q;   // SQ2.16
+    logic signed [18:0] signed_mult_result_y_q;   // SQ2.16
     logic       vld_q13;
 
     // trimmed for a 16 bit fractional offset
@@ -132,22 +130,37 @@ module generate_ray
     // need to right shift the mult result back by 16 bits (because of the 2^16 multiplied by earlier to get 153) for proper fixed point
     // interpretation before subtracting the camera shift. This means Q18.16 -> Q2.32. We only want 16 bits of fractional precision so
     // we can just take the upper 18 bits, then add an extra bit for the signed bit
-    assign signed_mult_result_x = $signed({1'b0, mult_result_x[33:16]});
-    assign signed_mult_result_y = $signed({1'b0, mult_result_y[33:16]});
+    assign signed_mult_result_x_d = $signed({1'b0, mult_result_x[33:16]});
+    assign signed_mult_result_y_d = $signed({1'b0, mult_result_y[33:16]});
 
-    assign camera_space_x_d = signed_mult_result_x - SCREEN_TO_CAMERA_SHIFT_X;
-    assign camera_space_y_d = signed_mult_result_y - SCREEN_TO_CAMERA_SHIFT_Y;    
-
-    `FFLNR(camera_space_x_q, camera_space_x_d, ~ds_stall_i, clk)
-    `FFLNR(camera_space_y_q, camera_space_y_d, ~ds_stall_i, clk)
+    `FFLNR(signed_mult_result_x_q, signed_mult_result_x_d, ~ds_stall_i, clk)
+    `FFLNR(signed_mult_result_y_q, signed_mult_result_y_d, ~ds_stall_i, clk)
     `FFLSR(vld_q13, vld_q12, ~ds_stall_i, '0, clk, rst)
 
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // LOGIC STAGE 14-17 OF 17
+    // LOGIC STAGE 14 OF 18
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    logic signed [18:0] camera_space_x_d;       // SQ2.16
+    logic signed [18:0] camera_space_y_d;       // SQ2.16
+    logic signed [18:0] camera_space_x_q;       // SQ2.16
+    logic signed [18:0] camera_space_y_q;       // SQ2.16
+    logic       vld_q14;
+
+
+    assign camera_space_x_d = signed_mult_result_x_q - SCREEN_TO_CAMERA_SHIFT_X;
+    assign camera_space_y_d = signed_mult_result_y_q - SCREEN_TO_CAMERA_SHIFT_Y;    
+
+    `FFLNR(camera_space_x_q, camera_space_x_d, ~ds_stall_i, clk)
+    `FFLNR(camera_space_y_q, camera_space_y_d, ~ds_stall_i, clk)
+    `FFLSR(vld_q14, vld_q13, ~ds_stall_i, '0, clk, rst)
+
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // LOGIC STAGE 15-18 OF 18
     /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // we now need to normalize the ray directions. With our chosen FOV (70) and aspect ratio (4/3), the input to the normalization function is
-    // s = x² + y² + 1, with realistic range [1, 2.362) and supported range [1, 4), and the LUT computes 1/√s with realistic range [0.651, 1],
+    // s = x^2 + y^2 + 1, with realistic range [1, 2.362) and supported range [1, 4), and the LUT computes 1/sqrt(s) with realistic range [0.651, 1],
     // which means we are in a good position to use a look up table with linear interpolation to get good accuracy with reasonable hardware cost.
     // See generate_ray_norm.sv for more info
 
@@ -163,7 +176,7 @@ module generate_ray
 
         .x_i(camera_space_x_q),
         .y_i(camera_space_y_q),
-        .vld_i(vld_q13),
+        .vld_i(vld_q14),
         .stall_i(ds_stall_i),
 
         .x_norm_o(norm_dir_x),
