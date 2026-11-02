@@ -119,8 +119,8 @@ def floor_shift(v, n):
 
 
 def norm_model(x, y, values, diffs):
-    """x, y: SQ2.16 integers. Returns (x_norm, y_norm, z_norm) as SQ1.16 integers, plus internals."""
-    # stage 1: s = x^2 + y^2 + 1 (SQ5.32), trim to Q2.20 = s[33:12]
+    """x, y: SQ1.16 integers. Returns (x_norm, y_norm, z_norm) as SQ1.16 integers, plus internals."""
+    # stage 1: s = x^2 + y^2 + 1 (SQ3.32), trim to Q2.20 = s[33:12]
     s = x * x + y * y + (1 << 32)
     s_trimmed = (s >> 12) & ((1 << 22) - 1)
 
@@ -136,11 +136,12 @@ def norm_model(x, y, values, diffs):
     norm_div_trimmed = norm_div >> 16              # [37:16] -> SQ1.20 (always positive)
 
     # stage 4: final multiply and trim
-    x_full = x * norm_div_trimmed                  # SQ4.36
+    x_full = x * norm_div_trimmed                  # SQ3.36
     y_full = y * norm_div_trimmed
-    x_norm = floor_shift(x_full, 20)               # {[40], [36:20]} -> SQ1.16
-    y_norm = floor_shift(y_full, 20)
-    z_norm = floor_shift(-norm_div_trimmed, 4)     # [21:4] -> SQ1.16
+    # final trims round: add half an output LSB, then truncate (matches the RTL's + (1 << 19) and + (1 << 3))
+    x_norm = floor_shift(x_full + (1 << 19), 20)   # {[39], [36:20]} -> SQ1.16
+    y_norm = floor_shift(y_full + (1 << 19), 20)
+    z_norm = floor_shift(-norm_div_trimmed + (1 << 3), 4)   # [21:4] -> SQ1.16
     return x_norm, y_norm, z_norm, norm_div_trimmed, s_trimmed
 
 

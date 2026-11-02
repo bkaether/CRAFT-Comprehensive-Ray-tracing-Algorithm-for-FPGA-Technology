@@ -188,9 +188,11 @@ module generate_ray_norm
     logic               vld_q4;
 
     // normalize x, y, and z with final multiply (z is always -1 in camera space)
-    assign x_norm_full = x_q3 * norm_div_trimmed_q;   // SQ1.16 * SQ1.20 = SQ3.36
-    assign y_norm_full = y_q3 * norm_div_trimmed_q;   // SQ1.16 * SQ1.20 = SQ3.36
-    assign z_norm_full = -norm_div_trimmed_q;         // SQ1.20
+    // the extra added constant is adding half a LSB of precision so that the later trim rounds instead of truncates
+    // added constant for rounding = 2^(dropped bits - 1)
+    assign x_norm_full = (x_q3 * norm_div_trimmed_q) + (1 << 19);   // SQ1.16 * SQ1.20 = SQ3.36
+    assign y_norm_full = (y_q3 * norm_div_trimmed_q) + (1 << 19);   // SQ1.16 * SQ1.20 = SQ3.36
+    assign z_norm_full = -norm_div_trimmed_q         + (1 << 3);    // SQ1.20
 
     // trim for final output
     assign x_norm_d = {x_norm_full[39], x_norm_full[36:20]};
