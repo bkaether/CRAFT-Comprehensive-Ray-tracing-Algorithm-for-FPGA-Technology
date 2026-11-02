@@ -132,13 +132,13 @@ module tb_generate_ray();
         backpressure_drv.mode = RAND;
 
         // run the test with RAND backpressure
-        test_dut(200);
+        test_dut(10000);
             
         // change backpressure setting
         backpressure_drv.mode = BURST;
 
         // run the test with random burst stalls
-        test_dut(200);
+        test_dut(10000);
 
         // drain the pipeline by deasserting stall and waiting a few cycles
         drain();
