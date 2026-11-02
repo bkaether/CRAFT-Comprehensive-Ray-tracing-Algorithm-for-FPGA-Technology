@@ -1,6 +1,6 @@
 `timescale  1ns/1ps
 
-`include "ff_macros.sv"
+`include "ff_macros.svh"
 
 module ray_bvh_intersect
     import data_structs_pkg::*;

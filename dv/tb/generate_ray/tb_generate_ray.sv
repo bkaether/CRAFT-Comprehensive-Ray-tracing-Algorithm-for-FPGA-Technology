@@ -75,7 +75,7 @@ module tb_generate_ray();
         backpressure_drv = new(u_backpressure_intf.drv);
     endtask
 
-    task automatic test_dut(int num_valid_pixels, bit send_valid_pixels_only = 1'b0);
+    task automatic test_dut(input int num_valid_pixels, input bit send_valid_pixels_only = 1'b0);
 
         int n = 0;
         generate_ray_input_trans trans = new();
@@ -98,7 +98,7 @@ module tb_generate_ray();
 
     endtask
 
-    task drain();
+    task automatic drain(input int cycles = 20);
 
         // turn off backpressure
         backpressure_drv.mode = NONE;
@@ -107,7 +107,7 @@ module tb_generate_ray();
         drv.stop_trans();
 
         // wait for a few cycles to allow for lingering stalls to deassert and the pipeline to drain
-        repeat (20) @(u_generate_ray_intf.mcb);
+        repeat (cycles) @(u_generate_ray_intf.mcb);
 
     endtask
 

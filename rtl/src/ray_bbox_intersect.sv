@@ -1,6 +1,6 @@
 `timescale 1ns/1ps
 
-`include "ff_macros.sv"
+`include "ff_macros.svh"
 
 module ray_bbox_intersect 
     import data_structs_pkg::*;
@@ -8,7 +8,7 @@ module ray_bbox_intersect
     input wire clk,
     input wire rst,
     input wire stall,
-    input vec3 ray_orig,
+    input point_t ray_orig,
     input vec3_18_18_t inv_ray_dir,
     input wire [2:0] div_by_zero,
     input bbox_t box,

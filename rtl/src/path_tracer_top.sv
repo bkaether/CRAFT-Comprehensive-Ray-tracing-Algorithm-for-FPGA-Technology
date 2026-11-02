@@ -1,8 +1,10 @@
 `timescale 1ns/1ps
 
-`include "../data_macros.sv"
+`include "ff_macros.svh"
 
-module path_tracer_top (
+module path_tracer_top 
+    import data_structs_pkg::*;
+(
     input wire sysclk,
     // input wire rst,
     // input wire start,
@@ -44,7 +46,7 @@ module path_tracer_top (
     // ray_bbox intersect routine
 
     // create a temporary const bbox to use for now
-    bbox_t box = bbox_default;
+    bbox_t box = BBOX_DEFAULT;
     wire [48:0] nxt_closest_hit_distance;
     reg  [48:0] closest_hit_distance_reg;
 
