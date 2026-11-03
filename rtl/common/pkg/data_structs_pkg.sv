@@ -12,9 +12,10 @@ package data_structs_pkg;
         logic signed [27:0] y;
     } vec2_t;
 
+    // SQ13.16
     typedef struct packed {
-        logic signed [48:0] min;
-        logic signed [48:0] max;
+        logic signed [29:0] min;
+        logic signed [29:0] max;
     } range_t;
 
     typedef struct packed {
@@ -30,6 +31,7 @@ package data_structs_pkg;
         logic signed [17:0] z;
     } unit_vec3_t;
 
+    // SQ11.16
     typedef struct packed {
         logic signed [27:0] x;
         logic signed [27:0] y;
@@ -91,16 +93,12 @@ package data_structs_pkg;
     localparam logic [15:0] PIXEL_WIDTH_INV_Q0_16   = 16'd82;
     localparam logic [15:0] PIXEL_HEIGHT_INV_Q0_16  = 16'd109;
 
-    localparam logic signed [48:0] INFINITY_49             = 49'h0FFFFFFFFFFFF;
-    localparam logic signed [48:0] NEGATIVE_INFINITY_49    = 49'h1000000000000;
-
-    // value "1" in Q12.16 fixed point format
-    localparam logic signed [27:0] ONE_Q12_16          = 28'h0010000;
-    localparam logic signed [27:0] NEGATIVE_ONE_Q12_16 = 28'hFFF0000;
+    localparam logic signed [29:0] INFINITY_SQ13_16          = 30'h1FFFFFFF;    // SQ13.16
+    localparam logic signed [29:0] NEGATIVE_INFINITY_SQ13_16 = 30'h20000000;    // SQ13.16
 
     // default struct constants
     localparam vec2_t VEC2_DEFAULT = '0;
-    localparam range_t RANGE_DEFAULT = '{NEGATIVE_INFINITY_49, INFINITY_49};
+    localparam range_t RANGE_DEFAULT = '{INFINITY_SQ13_16, NEGATIVE_INFINITY_SQ13_16};
     localparam vec3_t VEC3_DEFAULT = '0;
     localparam point_t POINT_DEFAULT = '0;
     localparam spectrum_t SPECTRUM_DEFAULT = '1;

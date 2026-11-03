@@ -22,3 +22,11 @@ create_waiver -type LINT -id ASSIGN-6 -rtl_name {abs_dir_z} -rtl_hierarchy {ray_
 create_waiver -type LINT -id ASSIGN-6 -rtl_name {abs_inv_m_x} -rtl_hierarchy {ray_dir_inverse} -rtl_file {ray_dir_inverse.sv} -user Brian -description {This signal is intentionally trimmed}
 create_waiver -type LINT -id ASSIGN-6 -rtl_name {abs_inv_m_y} -rtl_hierarchy {ray_dir_inverse} -rtl_file {ray_dir_inverse.sv} -user Brian -description {This signal is intentionally trimmed}
 create_waiver -type LINT -id ASSIGN-6 -rtl_name {abs_inv_m_z} -rtl_hierarchy {ray_dir_inverse} -rtl_file {ray_dir_inverse.sv} -user Brian -description {This signal is intentionally trimmed}
+
+# ray_bbox_intersect.sv
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_x_t0_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_x_t1_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_y_t0_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_y_t1_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_z_t0_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_z_t1_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
