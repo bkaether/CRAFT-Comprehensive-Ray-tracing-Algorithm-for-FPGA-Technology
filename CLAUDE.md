@@ -19,7 +19,15 @@ Comprehensive Ray-tracing Algorithm for FPGA Technology: a fixed-point, real-tim
 - I care about resources, especially DSPs. Report utilization against the 7020 totals
   (~53,200 LUT, ~106,400 FF, 220 DSP).
 - I often work late. If confusion is piling up, suggest stopping.
-- **After each completed review item, update `doc/craft_status.md`** (NEXT UP list, the module's section, review status).
+
+## Maintaining doc/craft_status.md
+- It is the single source of truth for project state. Update it after each completed review item, decision, or synthesis run, in the same session; don't wait to be asked.
+- Keep the structure: How Brian wants help -> NEXT UP -> one section per module -> general sections (verification, OOC flow, timing levers, resource options, policies/style, repo, open design items, review history).
+- NEXT UP: short, prioritized items (one or two lines each) that point to the module section for detail. Remove items when done.
+- Module sections hold the current state: function/interface, latency, design per stage, latest utilization (vs 7020 totals) and timing, open decisions. Replace stale facts instead of appending history; record a result only with its date and conditions (e.g. "routed, shared ooc.xdc").
+- Standalone: no references to other docs, conversations, or numbered review items; describe things by name.
+- Record only what was decided or measured, not suggestions I haven't accepted. Keep it condensed.
+- Show me what changed in the doc (a short summary) after each update.
 
 ## Key conventions (details in doc/naming_conventions.md)
 - Valid/stall handshake; stall is a combinational passthrough; every pipeline enable is `~ds_stall_i`.
