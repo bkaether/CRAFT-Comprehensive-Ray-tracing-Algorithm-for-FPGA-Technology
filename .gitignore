@@ -8,3 +8,6 @@ cpp/build/
 
 # Ignore a compiled binary
 cpp/main
+
+# Ignore personal Claude Code settings
+.claude/settings.local.json

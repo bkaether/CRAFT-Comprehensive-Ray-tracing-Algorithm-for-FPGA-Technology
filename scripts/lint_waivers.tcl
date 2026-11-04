@@ -24,9 +24,16 @@ create_waiver -type LINT -id ASSIGN-6 -rtl_name {abs_inv_m_y} -rtl_hierarchy {ra
 create_waiver -type LINT -id ASSIGN-6 -rtl_name {abs_inv_m_z} -rtl_hierarchy {ray_dir_inverse} -rtl_file {ray_dir_inverse.sv} -user Brian -description {This signal is intentionally trimmed}
 
 # ray_bbox_intersect.sv
-create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_x_t0_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
-create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_x_t1_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
-create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_y_t0_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
-create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_y_t1_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
-create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_z_t0_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
-create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_z_t1_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_x_near_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_x_far_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_y_near_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_y_far_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_z_near_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {mult_result_z_far_shifted} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed}
+
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {sub_far_x_pre_round} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed to fit DSP 25 bit ports}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {sub_far_y_pre_round} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed to fit DSP 25 bit ports}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {sub_far_z_pre_round} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed to fit DSP 25 bit ports}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {sub_near_x_pre_round} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed to fit DSP 25 bit ports}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {sub_near_y_pre_round} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed to fit DSP 25 bit ports}
+create_waiver -type LINT -id ASSIGN-6 -rtl_name {sub_near_z_pre_round} -rtl_hierarchy {ray_bbox_intersect} -rtl_file {ray_bbox_intersect.sv} -user Brian -description {This signal is intentionally trimmed to fit DSP 25 bit ports}
