@@ -125,12 +125,15 @@ Waivers in `scripts/lint_waivers.tcl` (CRAFT lint button). Suppressed: `Synth 8-
 - `rtl/src/`: `generate_ray`, `tea_hash`, `generate_ray_norm`, `leading_zero_count`, `ray_dir_inverse`, `ray_bbox_intersect`, `path_tracer_top`. Older, pre-convention: `ray_inverse_div_wrapper` (obsolete), `ray_bvh_intersect` (WIP; must compile or be excluded for sims).
 - `rtl/mem/`: `norm_lut.mem`, `reciprocal_lut.mem` (generated; don't hand-edit).
 - `dv/common/tb_pkg.sv` (`fxpt_to_real`, `is_close_real`, ...); `dv/common/backpressure/`; `dv/tb/generate_ray/`, `dv/tb/ray_dir_inverse/`.
-- `scripts/`: `lint.tcl`, `lint_waivers.tcl`, `gen_norm_lut.py`, `gen_reciprocal_lut.py` (find the repo root via `.git`).
+- `scripts/`: `create_project.tcl`, `lint.tcl`, `lint_waivers.tcl`, `gen_norm_lut.py`, `gen_reciprocal_lut.py` (find the repo root via `.git`).
 - `constraints/`: `ooc.xdc` (shared). `doc/`: `naming_conventions.md`, `craft_status.md`. Root `CLAUDE.md`.
 - The Vivado project lives outside the repo; sources and IP are referenced in place. `ip/` (`.xci` only), `bd/` (early, to be rebuilt), `utilization/` (kept as records).
 
-## Vivado / reproducibility (to do)
-`.gitignore` (Vivado patterns; in `ip/*/` ignore everything except `.xci`); BD rebuild + Tcl export; record Vivado 2023.2.2; project-recreation Tcl (sources, include dirs, IP, BD, sim sets, tops); seed-regression Tcl; check whether `synth_1`/`impl_1` still point at the OOC constraint set.
+## Vivado / reproducibility
+- **Project recreation (2026-11-18):** `scripts/create_project.tcl` rebuilds the project from a clean clone: `vivado -mode batch -source <repo>/scripts/create_project.tcl [-tclargs -dir <path> -force]`, or `source` it in the GUI Tcl console. Default location: folder `CRAFT` next to the repo; refuses to overwrite without `-force`. Recreates part + PYNQ-Z2 board part (installs it from the Xilinx board store if missing; Vivado batch and GUI use different store folders, `2023.2.2` vs `2023.2`), `sources_1` (`rtl/` globbed, top `ray_bbox_intersect`, include `rtl/common/include`), `constrs_1` (board xdc) and `ooc` (`ooc.xdc`), one `<block>_sim` per `dv/tb/<block>/` (top `tb_<block>`, shared DV files, include dirs, 5 ms runtime; active `ray_dir_inverse_sim`), the `<block>_synth`/`_impl` OOC runs, message suppressions, and the lint toolbar button (GUI only). Verified in batch: the rebuilt project's file sets and runs match the original, and the `ray_dir_inverse` bench passes from the rebuilt project's filelist (20,000 checks, 0 errors).
+- Vivado 2023.2.2 runs Tcl 8.5 (no `lmap`, `dict` is fine).
+- Not covered: the BD (`bd/design_1`, early, to be rebuilt) and the stale `ray_bbox_mult` IP reference.
+- To do: `.gitignore` Vivado patterns; BD rebuild + Tcl export; seed-regression Tcl.
 
 ## Open design items
 - **Skid buffers / stall fanout (deferred).** Stall is a combinational passthrough, so one `ds_stall_i` drives every pipeline enable in the chain: fanout 1,215 in `path_tracer_top` and growing with each block. Skid buffers between blocks break the chain; mandatory before parallel lanes. Judge only in integrated runs.
