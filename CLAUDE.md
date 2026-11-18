@@ -19,6 +19,13 @@ Comprehensive Ray-tracing Algorithm for FPGA Technology: a fixed-point, real-tim
 - I care about resources, especially DSPs. Report utilization against the 7020 totals
   (~53,200 LUT, ~106,400 FF, 220 DSP).
 - I often work late. If confusion is piling up, suggest stopping.
+- **Guard the rebuild script.** `scripts/create_project.tcl` must always be able to rebuild the Vivado project
+  from a clean clone (I work on several machines). Whenever a change we discuss would not be picked up by it,
+  tell me at the time and propose the script edit. Examples: files outside the globbed folders (`rtl/src/*.sv`,
+  `rtl/common/pkg/*.sv`, `rtl/mem/*.mem`, `dv/tb/<block>/*.sv`, `dv/common/tb_pkg.sv`, `dv/common/backpressure/*.sv`),
+  subfolders (globs are not recursive), a bench top not named `tb_<block>`, new shared DV code, include dirs,
+  constraint files, IP/BD, new OOC runs (`ooc_blocks`), a different synth top or active simset, project or run
+  settings changed in the GUI, new message suppressions. Vivado runs Tcl 8.5 (no `lmap`).
 
 ## Maintaining doc/craft_status.md
 - It is the single source of truth for project state. Update it after each completed review item, decision, or synthesis run, in the same session; don't wait to be asked.
