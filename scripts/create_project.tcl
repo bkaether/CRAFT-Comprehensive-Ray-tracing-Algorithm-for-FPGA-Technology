@@ -20,7 +20,7 @@
 set proj_name      CRAFT
 set part           xc7z020clg400-1
 set board_part     tul.com.tw:pynq-z2:part0:1.0
-set synth_top      ray_bbox_intersect
+set synth_top      path_tracer_top
 set active_simset  ray_dir_inverse_sim
 set ooc_blocks     {generate_ray ray_dir_inverse path_tracer_top ray_bbox_intersect}
 set sim_runtime    5ms
