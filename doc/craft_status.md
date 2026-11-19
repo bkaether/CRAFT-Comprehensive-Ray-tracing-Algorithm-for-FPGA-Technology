@@ -80,6 +80,9 @@ Single source of truth for the state of CRAFT (Comprehensive Ray-tracing Algorit
 - Question to work through: which per-box values only live until that box's decision (traversal stack)?
 - **C++ reference bug:** `bvh.inl` line 248 loops over all `primitives` at a leaf instead of `node.start .. node.start + node.size` (correct image, no BVH speedup). Fix before using it as a reference.
 - Node storage idea: whole-number box corners (min floored, max ceiled) as a compact node format; boxes only grow.
+- **Scene memory (decided 2026-11-18):** inferred BRAM in RTL (`ram_style = "block"`, registered read, `$readmemh` from a generated `.mem`), one parameterized module for both node and triangle memory. Traversal reads one port; the other is a native write port, unused for now, later driven by an AXI BRAM Controller so the PS can load scenes without a rebuild.
+- Sizing (1024 triangles, one per leaf, balanced tree): 1023 interior entries x 336 bits (two child boxes, 168 bits each) -> **10 BRAM36 (7% of 140)** in either simple dual-port (5 x 72 bits, 2 deep) or true dual-port (10 x 36 bits); 24 spare bits per entry. Fetch width, not scene size, sets the BRAM count.
+- The C++ `bvh.inl` is not in the repo.
 
 ---
 
@@ -126,7 +129,7 @@ Waivers in `scripts/lint_waivers.tcl` (CRAFT lint button). Suppressed: `Synth 8-
 - `rtl/mem/`: `norm_lut.mem`, `reciprocal_lut.mem` (generated; don't hand-edit).
 - `dv/common/tb_pkg.sv` (`fxpt_to_real`, `is_close_real`, ...); `dv/common/backpressure/`; `dv/tb/generate_ray/`, `dv/tb/ray_dir_inverse/`.
 - `scripts/`: `create_project.tcl`, `lint.tcl`, `lint_waivers.tcl`, `gen_norm_lut.py`, `gen_reciprocal_lut.py` (find the repo root via `.git`).
-- `constraints/`: `ooc.xdc` (shared). `doc/`: `naming_conventions.md`, `craft_status.md`. Root `CLAUDE.md`.
+- `constraints/`: `ooc.xdc` (shared). `doc/`: `naming_conventions.md`, `craft_status.md`, `bvh/bvh_memory_notes.md` (BVH memory and traversal working notes). Root `CLAUDE.md`.
 - The Vivado project lives outside the repo; sources and IP are referenced in place. `ip/` (`.xci` only), `bd/` (early, to be rebuilt), `utilization/` (kept as records).
 
 ## Vivado / reproducibility
