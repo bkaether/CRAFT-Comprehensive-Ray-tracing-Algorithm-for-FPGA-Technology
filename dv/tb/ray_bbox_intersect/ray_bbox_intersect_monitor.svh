@@ -54,7 +54,8 @@ class ray_bbox_intersect_monitor;
             if (vif.pcb.ds_vld_o && !vif.pcb.ds_stall_i) begin
                 ray_bbox_intersect_observed_output_t observed_output;
 
-                // TODO
+                observed_output.ds_hit_o = vif.pcb.ds_hit_o;
+                observed_output.ds_bbox_distance_o = vif.pcb.ds_bbox_distance_o;
 
                 output_mbx.put(observed_output);
 
